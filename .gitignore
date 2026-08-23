@@ -1,0 +1,94 @@
+# ==========================================
+# PROMPTS, BLUEPRINTS & PRIVATE NOTES
+# ==========================================
+*prompt*
+*Prompt*
+*PROMPT*
+Blueprint*
+blueprint*
+laporan*
+Laporan*
+changelog*
+Changelog*
+*.scratch.*
+scratch/
+test_*.php
+test_*.docx
+test_*.csv
+questions_import.csv
+students_import.csv
+
+# ==========================================
+# ENVIRONMENT & SECRETS
+# ==========================================
+.env
+.env.*
+!.env.example
+!.env.testing
+*.key
+*.pem
+auth.json
+
+# ==========================================
+# DEPENDENCIES & PACKAGE MANAGERS
+# ==========================================
+vendor/
+node_modules/
+backend/vendor/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# BUILDS & COMPILED ASSETS
+# ==========================================
+dist/
+dist-ssr/
+frontend/dist/
+frontend/dist-ssr/
+public/build/
+public/hot
+backend/public/build/
+backend/public/hot
+backend/public/storage
+
+# ==========================================
+# DATABASE & STORAGE CACHE
+# ==========================================
+database/*.sqlite
+database/*.sqlite-journal
+*.sqlite
+backend/database/*.sqlite
+backend/database/*.sqlite-journal
+backend/storage/*.key
+backend/storage/logs/*
+!backend/storage/logs/.gitignore
+backend/storage/framework/cache/*
+!backend/storage/framework/cache/.gitignore
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitignore
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitignore
+backend/storage/pail
+
+# ==========================================
+# IDE, SYSTEM & AGENT CACHE
+# ==========================================
+.vscode/
+.idea/
+.fleet/
+.nova/
+.zed/
+.agents/
+.gemini/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.phpunit.result.cache
+.phpunit.cache
