@@ -289,7 +289,7 @@ class DocxQuestionService
     /**
      * Finalize question attributes and resolve option keys
      */
-    protected function finalizeQuestion(array $q): array
+    protected function finalizeQuestion(array $q): ?array
     {
         $type = $q['type'];
         $keyRaw = $q['key_raw'];
