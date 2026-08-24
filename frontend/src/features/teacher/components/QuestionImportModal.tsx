@@ -118,13 +118,13 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({ packag
       <div className="w-full max-w-2xl glass-panel rounded-3xl p-6 md:p-8 shadow-2xl relative max-h-[92vh] flex flex-col overflow-hidden">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-xl transition"
+          className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-xl transition z-10"
         >
           <X className="h-5 w-5" />
         </button>
         
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3 mb-2 shrink-0">
           <div className="p-2.5 bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-indigo-200 dark:border-indigo-500/20">
             <Upload className="h-6 w-6" />
           </div>
@@ -134,196 +134,202 @@ export const QuestionImportModal: React.FC<QuestionImportModalProps> = ({ packag
           </div>
         </div>
 
-        {/* Format Selector Tabs */}
-        <div className="flex bg-slate-200/60 dark:bg-white/5 p-1 rounded-2xl my-3 text-xs font-bold gap-1 shrink-0">
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 min-h-0 my-1">
+          
+          {/* Format Selector Tabs */}
+          <div className="flex bg-slate-200/60 dark:bg-white/5 p-1 rounded-2xl text-xs font-bold gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab('word')}
+              className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition ${
+                activeTab === 'word'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <FileText className="h-4 w-4 text-blue-500 dark:text-blue-300" />
+              <span>Format Microsoft Word (.docx)</span>
+              <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-md">Direkomendasikan</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('excel')}
+              className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition ${
+                activeTab === 'excel'
+                  ? 'bg-white dark:bg-emerald-600 text-emerald-600 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Table className="h-4 w-4 text-emerald-500 dark:text-emerald-300" />
+              <span>Format Excel / CSV</span>
+            </button>
+          </div>
+
+          {/* Tab 1: Panduan Format Word */}
+          {activeTab === 'word' && (
+            <div className="p-3.5 bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-500/20 rounded-2xl text-xs text-slate-700 dark:text-gray-300 space-y-2">
+              <div className="flex items-center justify-between font-bold text-blue-800 dark:text-blue-300">
+                <span className="flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  Panduan Format Dokumen Word (.docx):
+                </span>
+                <button
+                  type="button"
+                  onClick={downloadWordTemplate}
+                  disabled={downloadingWord}
+                  className="text-[11px] text-blue-700 dark:text-blue-300 hover:underline flex items-center gap-1 bg-blue-100 dark:bg-blue-900/50 px-2 py-0.5 rounded-lg font-bold"
+                >
+                  <Download className="h-3 w-3" />
+                  {downloadingWord ? 'Mengunduh...' : 'Unduh Template Word (.docx)'}
+                </button>
+              </div>
+              <div className="font-mono text-[11px] bg-white/70 dark:bg-black/30 p-2.5 rounded-xl border border-blue-100 dark:border-blue-900/40 text-slate-700 dark:text-gray-300 space-y-1">
+                <p className="text-slate-900 dark:text-white font-bold">1. Berapakah hasil dari 15 + 27 ?</p>
+                <p className="pl-3 text-slate-600 dark:text-gray-400">A. 40</p>
+                <p className="pl-3 text-slate-600 dark:text-gray-400">B. 42</p>
+                <p className="pl-3 text-slate-600 dark:text-gray-400">C. 45</p>
+                <p className="pl-3 font-bold text-emerald-600 dark:text-emerald-400">KUNCI: B</p>
+                <p className="pl-3 text-slate-500 dark:text-gray-400 italic">PEMBAHASAN: 15 + 27 = 42.</p>
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-tight">
+                • Tipe lain didukung: <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: pilihan_ganda_kompleks</span> (kunci: A, B), <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: benar_salah</span>, <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: essay</span>, dan <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: menjodohkan</span> (<span className="font-mono">PASANGAN: Kiri : Kanan</span>).
+              </p>
+            </div>
+          )}
+
+          {/* Tab 2: Panduan Format Excel */}
+          {activeTab === 'excel' && (
+            <div className="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl text-xs text-slate-700 dark:text-gray-300 space-y-2">
+              <div className="flex items-center justify-between font-bold text-emerald-800 dark:text-emerald-300">
+                <span className="flex items-center gap-1.5">
+                  <Table className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  Panduan Kolom Spreadsheet Excel (.csv):
+                </span>
+                <button
+                  type="button"
+                  onClick={downloadExcelTemplate}
+                  className="text-[11px] text-emerald-700 dark:text-emerald-300 hover:underline flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded-lg font-bold"
+                >
+                  <Download className="h-3 w-3" />
+                  Unduh Template Excel (.csv)
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-slate-600 dark:text-gray-400">
+                <div>• <strong className="text-slate-900 dark:text-gray-200">soal</strong>: Teks butir pertanyaan</div>
+                <div>• <strong className="text-slate-900 dark:text-gray-200">tipe_soal</strong>: pilihan_ganda / essay / dll</div>
+                <div>• <strong className="text-slate-900 dark:text-gray-200">pilihan_a s/d e</strong>: Kolom opsi</div>
+                <div>• <strong className="text-slate-900 dark:text-gray-200">kunci_jawaban</strong>: Huruf kunci (A / A,B)</div>
+                <div>• <strong className="text-slate-900 dark:text-gray-200">pasangan_menjodohkan</strong>: Kiri : Kanan</div>
+                <div>• <strong className="text-slate-900 dark:text-gray-200">pembahasan</strong>: Penjelasan materi</div>
+              </div>
+            </div>
+          )}
+
+          {/* Error Alert */}
+          {error && (
+            <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-2xl text-xs flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
+              <div className="overflow-hidden flex-1">
+                <span className="font-bold block break-words">{error}</span>
+                {rowErrors.length > 0 && (
+                  <ul className="list-disc pl-4 mt-1.5 space-y-0.5 max-h-28 overflow-y-auto font-medium">
+                    {rowErrors.map((err, idx) => (
+                      <li key={idx} className="text-rose-600 dark:text-rose-400">{err}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Form Upload Area */}
+          <form id="import-form" onSubmit={handleSubmit} className="space-y-3.5">
+            <div className={`border-2 border-dashed transition-all rounded-3xl p-5 text-center flex flex-col items-center justify-center cursor-pointer relative ${
+              file 
+                ? 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/20' 
+                : 'border-slate-300 dark:border-white/10 hover:border-indigo-500/60 bg-slate-50 dark:bg-white/[0.01]'
+            }`}>
+              <input
+                type="file"
+                accept=".docx,.csv,.xlsx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv"
+                onChange={handleFileChange}
+                required
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+              {file ? (
+                <div className="flex flex-col items-center space-y-1">
+                  <div className={`p-3 rounded-2xl ${isWordFile ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'}`}>
+                    {isWordFile ? <FileText className="h-8 w-8" /> : <Table className="h-8 w-8" />}
+                  </div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-sm mt-1">{file.name}</p>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400 font-medium">
+                    <span className="font-mono">{(file.size / 1024).toFixed(2)} KB</span>
+                    <span>•</span>
+                    <span className={`font-bold ${isWordFile ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                      {isWordFile ? 'Dokumen Word (.docx)' : 'Berkas Spreadsheet (.csv)'}
+                    </span>
+                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <Upload className="h-8 w-8 text-slate-400 dark:text-gray-400 mx-auto mb-1.5" />
+                  <p className="text-sm text-slate-800 dark:text-gray-200 font-bold">Klik atau seret file Word / Excel ke sini</p>
+                  <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">Mendukung berkas <strong className="text-blue-600 dark:text-blue-400">.docx</strong> (Microsoft Word) dan <strong className="text-emerald-600 dark:text-emerald-400">.csv</strong> (Excel)</p>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Download Strip */}
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-2xl">
+              <span className="text-xs font-bold text-slate-700 dark:text-gray-300">Unduh Template Siap Pakai:</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={downloadWordTemplate}
+                  disabled={downloadingWord}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 rounded-xl text-xs font-bold transition shadow-xs"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Template Word (.docx)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadExcelTemplate}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-600/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 rounded-xl text-xs font-bold transition shadow-xs"
+                >
+                  <Table className="h-3.5 w-3.5" />
+                  <span>Template Excel (.csv)</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        {/* Action Buttons - Always Pinned and Visible at Bottom */}
+        <div className="flex gap-3 pt-3 border-t border-slate-200 dark:border-white/5 shrink-0 mt-2">
           <button
             type="button"
-            onClick={() => setActiveTab('word')}
-            className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition ${
-              activeTab === 'word'
-                ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
-                : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            onClick={onClose}
+            className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold transition shadow-xs"
           >
-            <FileText className="h-4 w-4 text-blue-500 dark:text-blue-300" />
-            <span>Format Microsoft Word (.docx)</span>
-            <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-md">Direkomendasikan</span>
+            Batal
           </button>
           <button
-            type="button"
-            onClick={() => setActiveTab('excel')}
-            className={`flex-1 py-2 px-3 rounded-xl flex items-center justify-center gap-2 transition ${
-              activeTab === 'excel'
-                ? 'bg-white dark:bg-emerald-600 text-emerald-600 dark:text-white shadow-sm'
-                : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            type="submit"
+            form="import-form"
+            disabled={loading || !file}
+            className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition flex justify-center items-center disabled:opacity-50 shadow-lg shadow-indigo-600/30"
           >
-            <Table className="h-4 w-4 text-emerald-500 dark:text-emerald-300" />
-            <span>Format Excel / CSV</span>
+            {loading ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            ) : (
+              <span>Mulai Impor Soal</span>
+            )}
           </button>
         </div>
 
-        {/* Tab 1: Panduan Format Word */}
-        {activeTab === 'word' && (
-          <div className="p-3.5 bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-500/20 rounded-2xl text-xs text-slate-700 dark:text-gray-300 space-y-2 shrink-0 overflow-y-auto max-h-44">
-            <div className="flex items-center justify-between font-bold text-blue-800 dark:text-blue-300">
-              <span className="flex items-center gap-1.5">
-                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                Panduan Format Dokumen Word (.docx):
-              </span>
-              <button
-                type="button"
-                onClick={downloadWordTemplate}
-                disabled={downloadingWord}
-                className="text-[11px] text-blue-700 dark:text-blue-300 hover:underline flex items-center gap-1 bg-blue-100 dark:bg-blue-900/50 px-2 py-0.5 rounded-lg font-bold"
-              >
-                <Download className="h-3 w-3" />
-                {downloadingWord ? 'Mengunduh...' : 'Unduh Template Word (.docx)'}
-              </button>
-            </div>
-            <div className="font-mono text-[11px] bg-white/70 dark:bg-black/30 p-2.5 rounded-xl border border-blue-100 dark:border-blue-900/40 text-slate-700 dark:text-gray-300 space-y-1">
-              <p className="text-slate-900 dark:text-white font-bold">1. Berapakah hasil dari 15 + 27 ?</p>
-              <p className="pl-3 text-slate-600 dark:text-gray-400">A. 40</p>
-              <p className="pl-3 text-slate-600 dark:text-gray-400">B. 42</p>
-              <p className="pl-3 text-slate-600 dark:text-gray-400">C. 45</p>
-              <p className="pl-3 font-bold text-emerald-600 dark:text-emerald-400">KUNCI: B</p>
-              <p className="pl-3 text-slate-500 dark:text-gray-400 italic">PEMBAHASAN: 15 + 27 = 42.</p>
-            </div>
-            <p className="text-[11px] text-slate-600 dark:text-gray-400 leading-tight">
-              • Tipe lain didukung: <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: pilihan_ganda_kompleks</span> (kunci: A, B), <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: benar_salah</span>, <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: essay</span>, dan <span className="font-mono font-bold text-slate-800 dark:text-gray-200">TIPE: menjodohkan</span> (<span className="font-mono">PASANGAN: Kiri : Kanan</span>).
-            </p>
-          </div>
-        )}
-
-        {/* Tab 2: Panduan Format Excel */}
-        {activeTab === 'excel' && (
-          <div className="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl text-xs text-slate-700 dark:text-gray-300 space-y-2 shrink-0 overflow-y-auto max-h-44">
-            <div className="flex items-center justify-between font-bold text-emerald-800 dark:text-emerald-300">
-              <span className="flex items-center gap-1.5">
-                <Table className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                Panduan Kolom Spreadsheet Excel (.csv):
-              </span>
-              <button
-                type="button"
-                onClick={downloadExcelTemplate}
-                className="text-[11px] text-emerald-700 dark:text-emerald-300 hover:underline flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded-lg font-bold"
-              >
-                <Download className="h-3 w-3" />
-                Unduh Template Excel (.csv)
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-slate-600 dark:text-gray-400">
-              <div>• <strong className="text-slate-900 dark:text-gray-200">soal</strong>: Teks butir pertanyaan</div>
-              <div>• <strong className="text-slate-900 dark:text-gray-200">tipe_soal</strong>: pilihan_ganda / essay / dll</div>
-              <div>• <strong className="text-slate-900 dark:text-gray-200">pilihan_a s/d e</strong>: Kolom opsi</div>
-              <div>• <strong className="text-slate-900 dark:text-gray-200">kunci_jawaban</strong>: Huruf kunci (A / A,B)</div>
-              <div>• <strong className="text-slate-900 dark:text-gray-200">pasangan_menjodohkan</strong>: Kiri : Kanan</div>
-              <div>• <strong className="text-slate-900 dark:text-gray-200">pembahasan</strong>: Penjelasan materi</div>
-            </div>
-          </div>
-        )}
-
-        {/* Error Alert */}
-        {error && (
-          <div className="my-2.5 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 rounded-2xl text-xs shrink-0 flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
-            <div className="overflow-hidden">
-              <span className="font-bold block">{error}</span>
-              {rowErrors.length > 0 && (
-                <ul className="list-disc pl-4 mt-1 space-y-0.5 max-h-20 overflow-y-auto font-medium">
-                  {rowErrors.map((err, idx) => (
-                    <li key={idx} className="text-rose-600 dark:text-rose-400">{err}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Form Upload Area */}
-        <form onSubmit={handleSubmit} className="space-y-3.5 flex-1 flex flex-col min-h-0 mt-2">
-          <div className={`border-2 border-dashed transition-all rounded-3xl p-5 text-center flex flex-col items-center justify-center cursor-pointer relative ${
-            file 
-              ? 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/20' 
-              : 'border-slate-300 dark:border-white/10 hover:border-indigo-500/60 bg-slate-50 dark:bg-white/[0.01]'
-          }`}>
-            <input
-              type="file"
-              accept=".docx,.csv,.xlsx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv"
-              onChange={handleFileChange}
-              required
-              className="absolute inset-0 opacity-0 cursor-pointer"
-            />
-            {file ? (
-              <div className="flex flex-col items-center space-y-1">
-                <div className={`p-3 rounded-2xl ${isWordFile ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'}`}>
-                  {isWordFile ? <FileText className="h-8 w-8" /> : <Table className="h-8 w-8" />}
-                </div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white truncate max-w-sm mt-1">{file.name}</p>
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400 font-medium">
-                  <span className="font-mono">{(file.size / 1024).toFixed(2)} KB</span>
-                  <span>•</span>
-                  <span className={`font-bold ${isWordFile ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                    {isWordFile ? 'Dokumen Word (.docx)' : 'Berkas Spreadsheet (.csv)'}
-                  </span>
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <Upload className="h-8 w-8 text-slate-400 dark:text-gray-400 mx-auto mb-1.5" />
-                <p className="text-sm text-slate-800 dark:text-gray-200 font-bold">Klik atau seret file Word / Excel ke sini</p>
-                <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">Mendukung berkas <strong className="text-blue-600 dark:text-blue-400">.docx</strong> (Microsoft Word) dan <strong className="text-emerald-600 dark:text-emerald-400">.csv</strong> (Excel)</p>
-              </div>
-            )}
-          </div>
-
-          {/* Quick Download Strip */}
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-2xl">
-            <span className="text-xs font-bold text-slate-700 dark:text-gray-300">Unduh Template Siap Pakai:</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={downloadWordTemplate}
-                disabled={downloadingWord}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 rounded-xl text-xs font-bold transition shadow-xs"
-              >
-                <FileText className="h-3.5 w-3.5" />
-                <span>Template Word (.docx)</span>
-              </button>
-              <button
-                type="button"
-                onClick={downloadExcelTemplate}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-600/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 rounded-xl text-xs font-bold transition shadow-xs"
-              >
-                <Table className="h-3.5 w-3.5" />
-                <span>Template Excel (.csv)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2 border-t border-slate-200 dark:border-white/5 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold transition shadow-xs"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !file}
-              className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition flex justify-center items-center disabled:opacity-50 shadow-lg shadow-indigo-600/30"
-            >
-              {loading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              ) : (
-                <span>Mulai Impor Soal</span>
-              )}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   );

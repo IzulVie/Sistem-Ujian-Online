@@ -89,14 +89,40 @@ class QuestionImportController extends Controller
                 $importedCount = 0;
 
                 foreach ($parsedQuestions as $idx => $qData) {
+                    // Map Indonesian type to Database Enum
+                    $type = 'multiple_choice_single';
+                    $rawType = strtolower($qData['type'] ?? 'pilihan_ganda');
+                    if (in_array($rawType, ['pilihan_ganda_kompleks', 'pg_kompleks', 'multiple_choice_multi', 'multi', 'majemuk'])) {
+                        $type = 'multiple_choice_multi';
+                    } elseif (in_array($rawType, ['benar_salah', 'benar/salah', 'true_false', 'bs'])) {
+                        $type = 'true_false';
+                    } elseif (in_array($rawType, ['essay', 'uraian', 'esai'])) {
+                        $type = 'essay';
+                    } elseif (in_array($rawType, ['menjodohkan', 'matching', 'jodohkan'])) {
+                        $type = 'matching';
+                    } else {
+                        $type = 'multiple_choice_single';
+                    }
+
+                    // Map difficulty to Database Enum (easy, medium, hard)
+                    $diff = 'medium';
+                    $rawDiff = strtolower($qData['difficulty'] ?? 'sedang');
+                    if (str_contains($rawDiff, 'mudah') || str_contains($rawDiff, 'easy')) {
+                        $diff = 'easy';
+                    } elseif (str_contains($rawDiff, 'sulit') || str_contains($rawDiff, 'hard')) {
+                        $diff = 'hard';
+                    }
+
+                    $topic = !empty($qData['topic']) ? trim($qData['topic']) : 'Umum';
+
                     $question = QuestionBank::create([
                         'package_id' => $packageId,
                         'teacher_id' => $teacherId,
                         'subject_id' => $subjectId,
-                        'type' => $qData['type'],
+                        'type' => $type,
                         'content' => $qData['content'],
-                        'difficulty' => $qData['difficulty'] ?? 'sedang',
-                        'topic' => $qData['topic'] ?? null,
+                        'difficulty' => $diff,
+                        'topic' => $topic,
                         'explanation' => $qData['explanation'] ?? null,
                     ]);
 
