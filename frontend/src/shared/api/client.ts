@@ -45,6 +45,7 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('cbt_token');
       localStorage.removeItem('cbt_session_token');
       localStorage.removeItem('cbt_user');
+      localStorage.removeItem('cbt_login_time');
       
       // Redirect to login page
       if (!window.location.pathname.includes('/login')) {

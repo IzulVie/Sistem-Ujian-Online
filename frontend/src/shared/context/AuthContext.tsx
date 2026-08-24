@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
+import { toast } from './ToastContext';
 
 export interface UserProfile {
   id: number;
@@ -35,34 +36,62 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (loginVal: string, passwordVal: string) => Promise<User>;
-  logout: () => Promise<void>;
+  logout: (isAutoExpired?: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Maximum session lifetime: 8 Hours (28,800,000 milliseconds)
+export const MAX_SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Helper to clear local storage credentials
+  const clearAuthStorage = () => {
+    localStorage.removeItem('cbt_token');
+    localStorage.removeItem('cbt_session_token');
+    localStorage.removeItem('cbt_user');
+    localStorage.removeItem('cbt_login_time');
+    setUser(null);
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('cbt_token');
+      const loginTimeStr = localStorage.getItem('cbt_login_time');
+
       if (!token) {
         setIsLoading(false);
         return;
+      }
+
+      // Check if session has exceeded 8 hours
+      if (loginTimeStr) {
+        const loginTime = parseInt(loginTimeStr, 10);
+        const elapsed = Date.now() - loginTime;
+
+        if (elapsed >= MAX_SESSION_DURATION_MS) {
+          clearAuthStorage();
+          toast.warning('Sesi login Anda telah berakhir setelah 8 jam. Silakan login kembali.', 'Sesi Berakhir');
+          setIsLoading(false);
+          return;
+        }
       }
 
       try {
         const response = await apiClient.get('/auth/me');
         setUser(response.data.user);
         localStorage.setItem('cbt_user', JSON.stringify(response.data.user));
+        
+        // If login_time wasn't recorded, set it now
+        if (!loginTimeStr) {
+          localStorage.setItem('cbt_login_time', Date.now().toString());
+        }
       } catch (error) {
         console.error('Authentication check failed:', error);
-        // Interceptor handles cleanup on 401, but we clean up here as safety
-        localStorage.removeItem('cbt_token');
-        localStorage.removeItem('cbt_session_token');
-        localStorage.removeItem('cbt_user');
-        setUser(null);
+        clearAuthStorage();
       } finally {
         setIsLoading(false);
       }
@@ -70,6 +99,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
   }, []);
+
+  // Background Heartbeat: Periodically monitor 8-hour session lifetime (every 30 seconds)
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(() => {
+      const loginTimeStr = localStorage.getItem('cbt_login_time');
+      if (loginTimeStr) {
+        const loginTime = parseInt(loginTimeStr, 10);
+        const elapsed = Date.now() - loginTime;
+
+        if (elapsed >= MAX_SESSION_DURATION_MS) {
+          logout(true);
+        }
+      }
+    }, 30000); // 30 seconds check
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const login = async (loginVal: string, passwordVal: string): Promise<User> => {
     try {
@@ -83,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('cbt_token', token);
       localStorage.setItem('cbt_session_token', session_token);
       localStorage.setItem('cbt_user', JSON.stringify(loggedInUser));
+      localStorage.setItem('cbt_login_time', Date.now().toString());
 
       setUser(loggedInUser);
       return loggedInUser;
@@ -91,16 +140,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async () => {
+  const logout = async (isAutoExpired?: any) => {
+    const isExpired = typeof isAutoExpired === 'boolean' ? isAutoExpired : false;
     try {
       await apiClient.post('/auth/logout');
     } catch (error) {
       console.error('Logout request failed:', error);
     } finally {
-      localStorage.removeItem('cbt_token');
-      localStorage.removeItem('cbt_session_token');
-      localStorage.removeItem('cbt_user');
-      setUser(null);
+      clearAuthStorage();
+      if (isExpired) {
+        toast.warning('Sesi login Anda telah mencapai batas maksimal 8 jam. Anda telah dikeluarkan otomatis demi keamanan.', 'Sesi Berakhir');
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
     }
   };
 

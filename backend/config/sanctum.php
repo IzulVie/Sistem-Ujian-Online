@@ -50,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_EXPIRATION', 480), // 8 Hours (480 Minutes)
 
     /*
     |--------------------------------------------------------------------------
