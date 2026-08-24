@@ -12,7 +12,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  ShieldAlert
+  ShieldAlert,
+  BarChart3
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -24,6 +25,7 @@ export const AdminLayout: React.FC = () => {
   const menuItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Live Proctoring', path: '/admin/proctoring', icon: ShieldAlert },
+    { name: 'Laporan Hasil', path: '/admin/reports', icon: BarChart3 },
     { name: 'Jurusan', path: '/admin/majors', icon: School },
     { name: 'Kelas', path: '/admin/classes', icon: GraduationCap },
     { name: 'Mata Pelajaran', path: '/admin/subjects', icon: BookOpen },

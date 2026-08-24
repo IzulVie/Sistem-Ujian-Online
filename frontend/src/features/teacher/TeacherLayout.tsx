@@ -10,7 +10,8 @@ import {
   Menu, 
   X, 
   FileText, 
-  Calendar 
+  Calendar,
+  BarChart3
 } from 'lucide-react';
 
 export const TeacherLayout: React.FC = () => {
@@ -24,6 +25,7 @@ export const TeacherLayout: React.FC = () => {
     { name: 'Bank Soal', path: '/teacher/questions', icon: BookOpen },
     { name: 'Jadwal Ujian', path: '/teacher/exams', icon: Calendar },
     { name: 'Koreksi Manual', path: '/teacher/grading', icon: FileText },
+    { name: 'Laporan Hasil', path: '/teacher/reports', icon: BarChart3 },
   ];
 
   return (

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../shared/api/client';
 import { LaTeXRenderer } from '../../shared/components/LaTeXRenderer';
 import { CardGridSkeleton } from '../../shared/components/LoadingSkeleton';
 import { useToast } from '../../shared/context/ToastContext';
 import { 
   Plus, Edit2, Trash2, Calendar, Clock, Settings, Users, 
-  BookOpen, AlertCircle, X, Search, Folder, CheckCircle, ChevronDown, ChevronUp
+  BookOpen, AlertCircle, X, Search, Folder, CheckCircle, ChevronDown, ChevronUp, BarChart3
 } from 'lucide-react';
 
 interface Subject {
@@ -66,6 +67,7 @@ interface Exam {
 
 export const ExamsPage: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [exams, setExams] = useState<Exam[]>([]);
   const [packages, setPackages] = useState<QuestionPackage[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -523,18 +525,25 @@ export const ExamsPage: React.FC = () => {
               {/* Actions Footer */}
               <div className="pt-3 border-t border-slate-200 dark:border-white/5 flex gap-2">
                 <button
+                  onClick={() => navigate('/teacher/reports')}
+                  className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/10 dark:hover:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-xl text-xs font-bold transition shadow-xs"
+                >
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  <span>Laporan</span>
+                </button>
+                <button
                   onClick={() => openEditModal(exam)}
                   className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-600/10 dark:hover:bg-cyan-600/20 border border-cyan-200 dark:border-cyan-500/20 text-cyan-700 dark:text-cyan-400 rounded-xl text-xs font-bold transition shadow-xs"
                 >
                   <Edit2 className="h-3.5 w-3.5" />
-                  <span>Edit Ujian</span>
+                  <span>Edit</span>
                 </button>
                 <button
                   onClick={() => handleDeleteExam(exam.id)}
-                  className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/10 dark:hover:bg-rose-600/20 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 rounded-xl text-xs font-bold transition shadow-xs"
+                  className="p-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/10 dark:hover:bg-rose-600/20 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 rounded-xl text-xs font-bold transition shadow-xs"
+                  title="Hapus Ujian"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  <span>Hapus</span>
                 </button>
               </div>
             </div>

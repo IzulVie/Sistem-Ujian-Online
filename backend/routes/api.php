@@ -69,6 +69,10 @@ Route::middleware(['auth:sanctum', 'single_session'])->group(function () {
         Route::get('exams/{exam}/attempts', [GradingController::class, 'examAttempts']);
         Route::get('attempts/{attempt}', [GradingController::class, 'showAttemptAnswers']);
         Route::post('answers/{answer}/grade', [GradingController::class, 'gradeAnswer']);
+
+        // Exam Analytics & Results Reporting endpoints
+        Route::get('exams/{exam}/report', [\App\Http\Controllers\Api\Teacher\ExamReportController::class, 'getExamReport']);
+        Route::get('exams/{exam}/report/export', [\App\Http\Controllers\Api\Teacher\ExamReportController::class, 'exportCsv']);
     });
 
     // Student Exam pengerjaan routes with High-Throughput Burst Rate Limiting

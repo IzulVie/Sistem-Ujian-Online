@@ -17,6 +17,7 @@ const TeacherLayout = lazy(() => import('./features/teacher/TeacherLayout').then
 const QuestionBankPage = lazy(() => import('./features/teacher/QuestionBankPage').then(m => ({ default: m.QuestionBankPage })));
 const ExamsPage = lazy(() => import('./features/teacher/ExamsPage').then(m => ({ default: m.ExamsPage })));
 const GradingPage = lazy(() => import('./features/teacher/GradingPage').then(m => ({ default: m.GradingPage })));
+const ExamReportPage = lazy(() => import('./features/teacher/ExamReportPage').then(m => ({ default: m.ExamReportPage })));
 const AdminLayout = lazy(() => import('./features/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 const AdminDashboard = lazy(() => import('./features/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const LiveMonitoringPage = lazy(() => import('./features/admin/LiveMonitoringPage').then(m => ({ default: m.LiveMonitoringPage })));
@@ -72,6 +73,7 @@ export const App: React.FC = () => {
                   <Route path="/teacher/questions" element={<QuestionBankPage />} />
                   <Route path="/teacher/exams" element={<ExamsPage />} />
                   <Route path="/teacher/grading" element={<GradingPage />} />
+                  <Route path="/teacher/reports" element={<ExamReportPage />} />
                 </Route>
               </Route>
 
@@ -80,6 +82,7 @@ export const App: React.FC = () => {
                 <Route element={<AdminLayout />}>
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/proctoring" element={<LiveMonitoringPage />} />
+                  <Route path="/admin/reports" element={<ExamReportPage />} />
                   <Route path="/admin/majors" element={<MajorsPage />} />
                   <Route path="/admin/classes" element={<ClassesPage />} />
                   <Route path="/admin/subjects" element={<SubjectsPage />} />
