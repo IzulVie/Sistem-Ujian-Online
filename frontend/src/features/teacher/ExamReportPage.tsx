@@ -169,7 +169,7 @@ export const ExamReportPage: React.FC = () => {
     }
   };
 
-  // Export CSV Handler
+  // Export Excel Handler
   const handleExportCsv = async () => {
     if (!selectedExamId || !report) return;
     setExportingCsv(true);
@@ -178,18 +178,18 @@ export const ExamReportPage: React.FC = () => {
         responseType: 'blob',
       });
 
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv;charset=utf-8;' }));
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.ms-excel;charset=utf-8;' }));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Laporan_Hasil_Ujian_${report.exam.title.replace(/\s+/g, '_')}.csv`);
+      link.setAttribute('download', `Laporan_Hasil_Ujian_${report.exam.title.replace(/\s+/g, '_')}.xls`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success('Laporan rekap nilai Excel (.csv) berhasil diunduh!');
+      toast.success('Laporan rekap nilai Excel (.xls) berhasil diunduh!');
     } catch (err) {
-      console.error('Export CSV error:', err);
+      console.error('Export Excel error:', err);
       toast.error('Gagal mengekspor laporan nilai.');
     } finally {
       setExportingCsv(false);

@@ -197,92 +197,303 @@ class ExamReportController extends Controller
     }
 
     /**
-     * Export student exam scores to CSV (Excel compatible)
+     * Export student exam scores to beautifully formatted Microsoft Excel (.xls SpreadsheetML)
      */
     public function exportCsv(Request $request, $examId): StreamedResponse
     {
-        $exam = Exam::with(['subject'])->findOrFail($examId);
+        $exam = Exam::with(['subject', 'academicYear'])->findOrFail($examId);
         $kkm = $exam->kkm_score ?? 75;
 
         $attempts = StudentExamAttempt::where('exam_id', $examId)
             ->with(['student.user', 'student.classRoom', 'violations', 'answers'])
             ->get()
-            ->sortByDesc(fn($a) => $a->total_score ?? -1);
+            ->sortByDesc(fn($a) => $a->total_score ?? -1)
+            ->values();
 
-        $filename = 'Laporan_Hasil_Ujian_' . str_replace(' ', '_', $exam->title) . '_' . date('Ymd_His') . '.csv';
+        $scores = $attempts->whereNotNull('total_score')->pluck('total_score')->map(fn($s) => (float)$s);
+        $avgScore = $scores->count() > 0 ? round($scores->avg(), 2) : 0;
+        $maxScore = $scores->count() > 0 ? round($scores->max(), 2) : 0;
+        $minScore = $scores->count() > 0 ? round($scores->min(), 2) : 0;
+        $passedCount = $scores->filter(fn($s) => $s >= $kkm)->count();
+        $passRate = $scores->count() > 0 ? round(($passedCount / $scores->count()) * 100, 1) : 0;
+
+        $cleanTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $exam->title);
+        $filename = 'Laporan_Hasil_Ujian_' . $cleanTitle . '_' . date('Ymd_His') . '.xls';
 
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
         ];
 
-        return response()->stream(function () use ($exam, $attempts, $kkm) {
-            $handle = fopen('php://output', 'w');
+        return response()->stream(function () use ($exam, $attempts, $kkm, $avgScore, $maxScore, $minScore, $passedCount, $passRate) {
+            $xmlEscape = function ($str) {
+                return htmlspecialchars((string)$str, ENT_XML1, 'UTF-8');
+            };
 
-            // UTF-8 BOM for Microsoft Excel compatibility
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            echo '<?mso-application progid="Excel.Sheet"?>' . "\n";
+            ?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="MainTitle">
+   <Font ss:FontName="Calibri" ss:Size="16" ss:Bold="1" ss:Color="#1E1B4B"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="SubTitle">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Italic="1" ss:Color="#64748B"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="MetaHeader">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#334155"/>
+   <Interior ss:Color="#F1F5F9" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="MetaValue">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Color="#0F172A"/>
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="TableHeader">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#4338CA" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#312E81"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#312E81"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#312E81"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#312E81"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="CellRank">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#0F172A"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="CellText">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Color="#1E293B"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="CellCenter">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Color="#1E293B"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="CellScore">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#0F172A"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <NumberFormat ss:Format="0.00"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusPassed">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#15803D"/>
+   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#BBF7D0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#BBF7D0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#BBF7D0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#BBF7D0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusRemedial">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#B45309"/>
+   <Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FDE68A"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FDE68A"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FDE68A"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FDE68A"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StatusDisqualified">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#B91C1C"/>
+   <Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FECACA"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FECACA"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FECACA"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FECACA"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="FooterRow">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Bold="1" ss:Color="#1E293B"/>
+   <Interior ss:Color="#F8FAFC" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Double" ss:Weight="3" ss:Color="#94A3B8"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CBD5E1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#94A3B8"/>
+   </Borders>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Rekap Nilai Ujian">
+  <Table ss:DefaultRowHeight="20">
+   <Column ss:Width="45"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="95"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="130"/>
+   <Column ss:Width="130"/>
+   <Column ss:Width="85"/>
 
-            // Metadata info rows
-            fputcsv($handle, ['REKAPITULASI HASIL UJIAN CBT'], ';');
-            fputcsv($handle, ['Nama Ujian', $exam->title], ';');
-            fputcsv($handle, ['Mata Pelajaran', $exam->subject?->name ?? '-'], ';');
-            fputcsv($handle, ['KKM Standar', $kkm], ';');
-            fputcsv($handle, ['Tanggal Ekspor', date('d-m-Y H:i:s')], ';');
-            fputcsv($handle, [], ';');
+   <!-- Document Title -->
+   <Row ss:Height="26">
+    <Cell ss:MergeAcross="13" ss:StyleID="MainTitle"><Data ss:Type="String">REKAPITULASI HASIL UJIAN CBT</Data></Cell>
+   </Row>
+   <Row ss:Height="18">
+    <Cell ss:MergeAcross="13" ss:StyleID="SubTitle"><Data ss:Type="String">Sistem Ujian Online CBT &amp; Pengawasan Proctoring — <?= $xmlEscape(date('d F Y H:i')) ?></Data></Cell>
+   </Row>
+   <Row ss:Height="10"></Row>
 
-            // Table Header row
-            fputcsv($handle, [
-                'Peringkat',
-                'NISN',
-                'NIS',
-                'Nama Siswa',
-                'Kelas',
-                'Nilai Akhir',
-                'Status Kelulusan',
-                'Status Pengerjaan',
-                'Jumlah Benar',
-                'Jumlah Salah',
-                'Pelanggaran Proctoring',
-                'Waktu Mulai',
-                'Waktu Selesai',
-                'Durasi (Menit)'
-            ], ';');
+   <!-- Exam Metadata Box -->
+   <Row ss:Height="20">
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Nama Ujian</Data></Cell>
+    <Cell ss:MergeAcross="4" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $xmlEscape($exam->title) ?></Data></Cell>
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Rata-Rata Nilai</Data></Cell>
+    <Cell ss:MergeAcross="1" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $avgScore ?></Data></Cell>
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Lulus KKM</Data></Cell>
+    <Cell ss:MergeAcross="3" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $passedCount ?> Siswa (<?= $passRate ?>%)</Data></Cell>
+   </Row>
+   <Row ss:Height="20">
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Mata Pelajaran</Data></Cell>
+    <Cell ss:MergeAcross="4" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $xmlEscape($exam->subject?->name ?? 'Umum') ?></Data></Cell>
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Nilai Tertinggi</Data></Cell>
+    <Cell ss:MergeAcross="1" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $maxScore ?></Data></Cell>
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Total Peserta</Data></Cell>
+    <Cell ss:MergeAcross="3" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $attempts->count() ?> Siswa</Data></Cell>
+   </Row>
+   <Row ss:Height="20">
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Standar KKM</Data></Cell>
+    <Cell ss:MergeAcross="4" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $kkm ?> Poin</Data></Cell>
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Nilai Terendah</Data></Cell>
+    <Cell ss:MergeAcross="1" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $minScore ?></Data></Cell>
+    <Cell ss:StyleID="MetaHeader"><Data ss:Type="String">Durasi Ujian</Data></Cell>
+    <Cell ss:MergeAcross="3" ss:StyleID="MetaValue"><Data ss:Type="String"><?= $exam->duration_minutes ?> Menit</Data></Cell>
+   </Row>
+   <Row ss:Height="12"></Row>
 
-            $rank = 1;
-            foreach ($attempts as $att) {
-                $score = $att->total_score !== null ? (float)$att->total_score : null;
-                $isPassed = $score !== null ? ($score >= $kkm ? 'LULUS' : 'REMEDIAL') : 'BELUM SELESAI';
-                
-                $correctCount = $att->answers->filter(fn($a) => $a->score !== null && $a->score > 0)->count();
-                $incorrectCount = $att->answers->filter(fn($a) => $a->score === null || $a->score == 0)->count();
+   <!-- Main Table Header -->
+   <Row ss:Height="26">
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Rank</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">NISN</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">NIS</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Nama Lengkap Siswa</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Kelas</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Nilai Akhir</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Status Kelulusan</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Status Ujian</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Benar</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Salah</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Pelanggaran</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Waktu Mulai</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Waktu Selesai</Data></Cell>
+    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">Durasi (Mnt)</Data></Cell>
+   </Row>
 
-                $duration = null;
-                if ($att->started_at && $att->submitted_at) {
-                    $duration = round($att->started_at->diffInMinutes($att->submitted_at), 1);
-                }
+   <!-- Students Data Rows -->
+   <?php
+   $rank = 1;
+   foreach ($attempts as $att) {
+       $score = $att->total_score !== null ? (float)$att->total_score : null;
+       $statusStyle = 'StatusRemedial';
+       $statusLabel = 'REMEDIAL';
 
-                fputcsv($handle, [
-                    $rank++,
-                    $att->student?->nisn ?? '-',
-                    $att->student?->nis ?? '-',
-                    $att->student?->user?->name ?? 'Siswa',
-                    $att->student?->classRoom?->name ?? '-',
-                    $score !== null ? number_format($score, 2, ',', '.') : '0',
-                    $isPassed,
-                    ucfirst(str_replace('_', ' ', $att->status)),
-                    $correctCount,
-                    $incorrectCount,
-                    $att->violations->count(),
-                    $att->started_at?->format('d/m/Y H:i:s') ?? '-',
-                    $att->submitted_at?->format('d/m/Y H:i:s') ?? '-',
-                    $duration !== null ? $duration : '-'
-                ], ';');
-            }
+       if ($att->status === 'disqualified') {
+           $statusStyle = 'StatusDisqualified';
+           $statusLabel = 'DISKUALIFIKASI';
+       } elseif ($score !== null && $score >= $kkm) {
+           $statusStyle = 'StatusPassed';
+           $statusLabel = 'LULUS';
+       }
 
-            fclose($handle);
+       $correctCount = $att->answers->filter(fn($a) => $a->score !== null && $a->score > 0)->count();
+       $incorrectCount = $att->answers->filter(fn($a) => $a->score === null || $a->score == 0)->count();
+
+       $duration = null;
+       if ($att->started_at && $att->submitted_at) {
+           $duration = round($att->started_at->diffInMinutes($att->submitted_at), 1);
+       }
+   ?>
+   <Row ss:Height="22">
+    <Cell ss:StyleID="CellRank"><Data ss:Type="Number"><?= $rank++ ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $xmlEscape($att->student?->nisn ?? '-') ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $xmlEscape($att->student?->nis ?? '-') ?></Data></Cell>
+    <Cell ss:StyleID="CellText"><Data ss:Type="String"><?= $xmlEscape($att->student?->user?->name ?? 'Siswa') ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $xmlEscape($att->student?->classRoom?->name ?? '-') ?></Data></Cell>
+    <Cell ss:StyleID="CellScore"><Data ss:Type="Number"><?= $score !== null ? $score : 0 ?></Data></Cell>
+    <Cell ss:StyleID="<?= $statusStyle ?>"><Data ss:Type="String"><?= $statusLabel ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $xmlEscape(ucfirst(str_replace('_', ' ', $att->status))) ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="Number"><?= $correctCount ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="Number"><?= $incorrectCount ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="Number"><?= $att->violations->count() ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $att->started_at ? $att->started_at->format('d/m/Y H:i:s') : '-' ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $att->submitted_at ? $att->submitted_at->format('d/m/Y H:i:s') : '-' ?></Data></Cell>
+    <Cell ss:StyleID="CellCenter"><Data ss:Type="String"><?= $duration !== null ? $duration : '-' ?></Data></Cell>
+   </Row>
+   <?php } ?>
+
+  </Table>
+ </Worksheet>
+</Workbook>
+<?php
         }, 200, $headers);
     }
 }
