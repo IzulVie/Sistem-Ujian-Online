@@ -431,13 +431,13 @@ export const QuestionBankPage: React.FC = () => {
           {loadingPackages ? (
             <CardGridSkeleton count={6} cols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
           ) : filteredPackages.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
               {filteredPackages.map((pkg) => {
                 const questionCount = pkg.questions_count ?? pkg.total_questions ?? 0;
                 return (
                   <div
                     key={pkg.id}
-                    className="glass-panel rounded-3xl p-5 border border-slate-200 dark:border-white/10 hover:border-cyan-500/40 transition-all flex flex-col justify-between group shadow-sm hover:shadow-xl"
+                    className="glass-panel rounded-3xl p-5 border border-slate-200 dark:border-white/10 hover:border-cyan-500/40 flex flex-col justify-between group card-interactive"
                   >
                     <div>
                       {/* Badge Top */}
@@ -474,7 +474,7 @@ export const QuestionBankPage: React.FC = () => {
                     <div className="pt-3 border-t border-slate-200 dark:border-white/5 flex items-center justify-between gap-2">
                       <button
                         onClick={() => handleOpenPackage(pkg)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-cyan-600/20"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-cyan-600/20 btn-press"
                       >
                         <Folder className="h-3.5 w-3.5" />
                         <span>Buka Berkas</span>
@@ -482,7 +482,7 @@ export const QuestionBankPage: React.FC = () => {
 
                       <button
                         onClick={() => handleDuplicatePackage(pkg.id)}
-                        className="p-2.5 bg-slate-100 hover:bg-cyan-100 dark:bg-white/5 dark:hover:bg-cyan-600/20 text-slate-600 hover:text-cyan-700 dark:text-gray-400 dark:hover:text-cyan-400 border border-slate-200 dark:border-white/10 rounded-xl transition shadow-xs"
+                        className="p-2.5 bg-slate-100 hover:bg-cyan-100 dark:bg-white/5 dark:hover:bg-cyan-600/20 text-slate-600 hover:text-cyan-700 dark:text-gray-400 dark:hover:text-cyan-400 border border-slate-200 dark:border-white/10 rounded-xl transition shadow-xs btn-press"
                         title="Duplikasi Berkas Paket"
                       >
                         <Copy className="h-4 w-4" />
@@ -490,7 +490,7 @@ export const QuestionBankPage: React.FC = () => {
 
                       <button
                         onClick={() => handleOpenEditPackage(pkg)}
-                        className="p-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white border border-slate-200 dark:border-white/10 rounded-xl transition shadow-xs"
+                        className="p-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white border border-slate-200 dark:border-white/10 rounded-xl transition shadow-xs btn-press"
                         title="Edit Berkas"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -498,7 +498,7 @@ export const QuestionBankPage: React.FC = () => {
 
                       <button
                         onClick={() => handleDeletePackage(pkg.id)}
-                        className="p-2.5 bg-slate-100 hover:bg-rose-100 dark:bg-white/5 dark:hover:bg-rose-600/20 text-slate-600 hover:text-rose-700 dark:text-gray-400 dark:hover:text-rose-400 border border-slate-200 dark:border-white/10 rounded-xl transition shadow-xs"
+                        className="p-2.5 bg-slate-100 hover:bg-rose-100 dark:bg-white/5 dark:hover:bg-rose-600/20 text-slate-600 hover:text-rose-700 dark:text-gray-400 dark:hover:text-rose-400 border border-slate-200 dark:border-white/10 rounded-xl transition shadow-xs btn-press"
                         title="Hapus Berkas"
                       >
                         <Trash2 className="h-4 w-4" />

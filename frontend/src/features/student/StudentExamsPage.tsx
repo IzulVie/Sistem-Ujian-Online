@@ -260,7 +260,7 @@ export const StudentExamsPage: React.FC = () => {
               {loading ? (
                 <CardGridSkeleton count={2} cols="grid-cols-1 md:grid-cols-2" />
               ) : exams.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
                   {exams.map((exam) => {
                     const attempt = exam.attempt;
                     const isFinished = attempt?.status === 'submitted' || attempt?.status === 'auto_submitted';
@@ -270,7 +270,7 @@ export const StudentExamsPage: React.FC = () => {
                     return (
                       <div 
                         key={exam.exam_group_id} 
-                        className={`glass-panel p-5 rounded-3xl flex flex-col justify-between transition duration-200 border ${
+                        className={`glass-panel p-5 rounded-3xl flex flex-col justify-between card-interactive border ${
                           isDisqualified
                             ? 'border-rose-300 dark:border-rose-500/30 bg-rose-50/40 dark:bg-rose-950/20'
                             : isFinished 
@@ -336,7 +336,7 @@ export const StudentExamsPage: React.FC = () => {
                             <button
                               onClick={() => handleStartOrResumeExam(exam)}
                               disabled={isStarting}
-                              className={`w-full py-2.5 rounded-xl text-xs font-bold tracking-wide transition flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50 ${
+                              className={`w-full py-2.5 rounded-xl text-xs font-bold tracking-wide transition flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50 btn-press ${
                                 attempt?.status === 'in_progress'
                                   ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
                                   : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20'
@@ -349,8 +349,8 @@ export const StudentExamsPage: React.FC = () => {
                                 </>
                               ) : (
                                 <>
-                                  <Play className="h-3.5 w-3.5 fill-white" />
-                                  <span>{attempt?.status === 'in_progress' ? 'Lanjutkan Ujian' : 'Mulai Pengerjaan'}</span>
+                                  <Play className="h-3.5 w-3.5" />
+                                  <span>{attempt?.status === 'in_progress' ? 'Lanjutkan Ujian' : 'Mulai Ujian'}</span>
                                 </>
                               )}
                             </button>

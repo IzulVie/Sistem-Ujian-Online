@@ -421,11 +421,11 @@ export const ExamsPage: React.FC = () => {
       {loadingExams ? (
         <CardGridSkeleton count={4} cols="grid-cols-1 lg:grid-cols-2" />
       ) : exams.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in">
           {exams.map((exam) => (
             <div
               key={exam.id}
-              className="glass-panel rounded-3xl p-5 md:p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all"
+              className="glass-panel rounded-3xl p-5 md:p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between card-interactive"
             >
               <div>
                 {/* Header tags */}
@@ -484,7 +484,7 @@ export const ExamsPage: React.FC = () => {
                     </span>
                     <button
                       onClick={() => openGroupModal(exam)}
-                      className="text-[11px] text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 font-bold flex items-center gap-1 transition"
+                      className="text-[11px] text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 font-bold flex items-center gap-1 transition btn-press"
                     >
                       <Plus className="h-3 w-3" />
                       <span>Tambah Sesi</span>
@@ -506,7 +506,7 @@ export const ExamsPage: React.FC = () => {
                           </div>
                           <button
                             onClick={() => handleDeleteGroup(group.id)}
-                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded-lg"
+                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded-lg btn-press"
                             title="Hapus Sesi"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -526,21 +526,21 @@ export const ExamsPage: React.FC = () => {
               <div className="pt-3 border-t border-slate-200 dark:border-white/5 flex gap-2">
                 <button
                   onClick={() => navigate('/teacher/reports')}
-                  className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/10 dark:hover:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-xl text-xs font-bold transition shadow-xs"
+                  className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/10 dark:hover:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-xl text-xs font-bold transition shadow-xs btn-press"
                 >
                   <BarChart3 className="h-3.5 w-3.5" />
                   <span>Laporan</span>
                 </button>
                 <button
                   onClick={() => openEditModal(exam)}
-                  className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-600/10 dark:hover:bg-cyan-600/20 border border-cyan-200 dark:border-cyan-500/20 text-cyan-700 dark:text-cyan-400 rounded-xl text-xs font-bold transition shadow-xs"
+                  className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-600/10 dark:hover:bg-cyan-600/20 border border-cyan-200 dark:border-cyan-500/20 text-cyan-700 dark:text-cyan-400 rounded-xl text-xs font-bold transition shadow-xs btn-press"
                 >
                   <Edit2 className="h-3.5 w-3.5" />
                   <span>Edit</span>
                 </button>
                 <button
                   onClick={() => handleDeleteExam(exam.id)}
-                  className="p-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/10 dark:hover:bg-rose-600/20 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 rounded-xl text-xs font-bold transition shadow-xs"
+                  className="p-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/10 dark:hover:bg-rose-600/20 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 rounded-xl text-xs font-bold transition shadow-xs btn-press"
                   title="Hapus Ujian"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
