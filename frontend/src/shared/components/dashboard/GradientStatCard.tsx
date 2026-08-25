@@ -74,7 +74,7 @@ export const GradientStatCard: React.FC<GradientStatCardProps> = ({
   return (
     <div 
       onClick={onClick}
-      className={`rounded-3xl p-5 md:p-6 transition-all duration-200 relative overflow-hidden flex flex-col justify-between ${styles.cardClass} ${onClick ? 'cursor-pointer hover:-translate-y-1' : ''}`}
+      className={`rounded-3xl p-5 md:p-6 card-interactive relative overflow-hidden flex flex-col justify-between ${styles.cardClass} ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">

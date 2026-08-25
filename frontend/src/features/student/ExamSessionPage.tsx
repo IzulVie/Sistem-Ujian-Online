@@ -792,15 +792,21 @@ export const ExamSessionPage: React.FC = () => {
             {savingStatus === 'saving' ? 'Autosaving...' : savingStatus === 'saved' ? 'Tersimpan' : savingStatus === 'error' ? 'Offline' : ''}
           </span>
 
-          {/* Timer */}
-          <div className="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs sm:text-sm font-bold font-mono">
-            <Clock className="h-3.5 sm:h-4 w-3.5 sm:w-4 animate-pulse" />
+          {/* Timer with Adaptive Urgency Glow */}
+          <div className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold font-mono border transition-all duration-300 ${
+            timeRemaining <= 60
+              ? 'bg-rose-500/15 border-rose-500 text-rose-600 dark:text-rose-400 animate-glow-rose'
+              : timeRemaining <= 300
+              ? 'bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 animate-glow-amber'
+              : 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300'
+          }`}>
+            <Clock className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${timeRemaining <= 300 ? 'animate-bounce text-amber-500 dark:text-amber-400' : 'animate-pulse'}`} />
             <span>{formatTime(timeRemaining)}</span>
           </div>
 
           <button
             onClick={handleManualSubmit}
-            className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20"
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20 btn-press"
           >
             <Send className="h-3.5 w-3.5" />
             <span>Selesai</span>
@@ -828,7 +834,7 @@ export const ExamSessionPage: React.FC = () => {
             </div>
             <button
               onClick={() => setShowViolationModal(false)}
-              className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-700 active:scale-[0.98] transition text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-600/30"
+              className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-700 active:scale-[0.98] transition text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-600/30 btn-press"
             >
               Saya Mengerti & Lanjutkan Ujian
             </button>
@@ -841,7 +847,7 @@ export const ExamSessionPage: React.FC = () => {
         
         {/* Left Side: Question Workspace */}
         <main className="flex-1 p-3.5 sm:p-6 overflow-y-auto flex flex-col justify-between">
-          <div className="space-y-5 sm:space-y-6 max-w-4xl mx-auto w-full">
+          <div key={currentIdx} className="space-y-5 sm:space-y-6 max-w-4xl mx-auto w-full animate-fade-in">
             
             {/* Topic header with responsive mobile sheet button */}
             <div className="flex flex-wrap justify-between items-center gap-2 text-xs">
@@ -850,7 +856,7 @@ export const ExamSessionPage: React.FC = () => {
                   SOAL NOMOR {currentIdx + 1} <span className="text-slate-400 font-normal">/ {questions.length}</span>
                 </span>
                 {currentQuestion.is_flagged && (
-                  <span className="px-2 py-0.5 bg-amber-100 dark:bg-yellow-500/20 text-amber-900 dark:text-yellow-400 border border-amber-300 dark:border-yellow-500/30 rounded-md text-[10px] font-bold">
+                  <span className="px-2.5 py-0.5 bg-amber-100 dark:bg-yellow-500/20 text-amber-900 dark:text-yellow-400 border border-amber-300 dark:border-yellow-500/30 rounded-lg text-[10px] font-bold shadow-xs">
                     Ragu-ragu
                   </span>
                 )}
@@ -861,7 +867,7 @@ export const ExamSessionPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowMobileNavSheet(true)}
-                  className="md:hidden flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-bold active:scale-95 transition"
+                  className="md:hidden flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-bold active:scale-95 transition btn-press"
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
                   <span>Daftar Soal</span>
@@ -874,7 +880,7 @@ export const ExamSessionPage: React.FC = () => {
             </div>
 
             {/* Question prompt rendering with LaTeX */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-white/5 space-y-4 shadow-sm overflow-hidden">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-white/5 space-y-4 shadow-sm overflow-hidden backdrop-blur-md">
               <div className={`text-slate-900 dark:text-white font-medium overflow-x-auto ${
                 fontSize === 'sm' ? 'text-sm leading-normal' : fontSize === 'lg' ? 'text-lg sm:text-xl leading-relaxed' : 'text-base leading-relaxed'
               }`}>
@@ -893,23 +899,30 @@ export const ExamSessionPage: React.FC = () => {
               {/* Type: Single MCQ */}
               {currentQuestion.type === 'multiple_choice_single' && (
                 <div className="grid grid-cols-1 gap-2.5">
-                  {currentQuestion.options.map((opt) => {
+                  {currentQuestion.options.map((opt, optIdx) => {
                     const isSelected = currentQuestion.answer_content?.option_id === opt.id;
+                    const optionLetter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][optIdx] || `${optIdx + 1}`;
                     return (
                       <button
                         key={opt.id}
                         onClick={() => handleMCQSingleChange(opt.id)}
-                        className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm min-h-[50px] active:scale-[0.99] ${
+                        className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm min-h-[50px] btn-press ${
                           isSelected
-                            ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500/50 text-indigo-950 dark:text-white font-semibold'
-                            : 'bg-white/80 dark:bg-white/[0.01] border-slate-200/80 dark:border-white/5 text-slate-700 dark:text-gray-300 hover:bg-slate-100/60 dark:hover:bg-white/[0.02] hover:border-indigo-300 dark:hover:border-indigo-500/20'
+                            ? 'bg-indigo-50/90 dark:bg-indigo-600/25 border-indigo-500 text-indigo-950 dark:text-white font-semibold ring-2 ring-indigo-500/20'
+                            : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:border-indigo-300 dark:hover:border-indigo-500/30'
                         }`}
                       >
                         <div className="flex items-center gap-3 overflow-x-auto max-w-full">
-                          <span className={`h-5 w-5 shrink-0 rounded-full border flex items-center justify-center ${isSelected ? 'border-indigo-600 dark:border-indigo-400' : 'border-slate-300 dark:border-white/20'}`}>
-                            {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>}
+                          <span className={`h-7 w-7 shrink-0 rounded-xl text-xs font-bold font-mono flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                              : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-gray-300'
+                          }`}>
+                            {optionLetter}
                           </span>
-                          <LaTeXRenderer text={opt.content} />
+                          <div className="overflow-x-auto">
+                            <LaTeXRenderer text={opt.content} />
+                          </div>
                         </div>
                         {opt.media_url && (
                           <img src={opt.media_url} alt="Option attach" className="h-10 w-10 sm:h-12 sm:w-12 object-cover rounded-lg shrink-0" />
@@ -923,23 +936,30 @@ export const ExamSessionPage: React.FC = () => {
               {/* Type: Multi MCQ */}
               {currentQuestion.type === 'multiple_choice_multi' && (
                 <div className="grid grid-cols-1 gap-2.5">
-                  {currentQuestion.options.map((opt) => {
+                  {currentQuestion.options.map((opt, optIdx) => {
                     const isSelected = currentQuestion.answer_content?.option_ids?.includes(opt.id);
+                    const optionLetter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][optIdx] || `${optIdx + 1}`;
                     return (
                       <button
                         key={opt.id}
                         onClick={() => handleMCQMultiToggle(opt.id)}
-                        className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm min-h-[50px] active:scale-[0.99] ${
+                        className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm min-h-[50px] btn-press ${
                           isSelected
-                            ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500/50 text-indigo-950 dark:text-white font-semibold'
-                            : 'bg-white/80 dark:bg-white/[0.01] border-slate-200/80 dark:border-white/5 text-slate-700 dark:text-gray-300 hover:bg-slate-100/60 dark:hover:bg-white/[0.02] hover:border-indigo-300 dark:hover:border-indigo-500/20'
+                            ? 'bg-indigo-50/90 dark:bg-indigo-600/25 border-indigo-500 text-indigo-950 dark:text-white font-semibold ring-2 ring-indigo-500/20'
+                            : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/5 text-slate-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-white/[0.04] hover:border-indigo-300 dark:hover:border-indigo-500/30'
                         }`}
                       >
                         <div className="flex items-center gap-3 overflow-x-auto max-w-full">
-                          <span className={`h-5 w-5 shrink-0 rounded-lg border flex items-center justify-center ${isSelected ? 'border-indigo-600 dark:border-indigo-400 bg-indigo-600/10 dark:bg-indigo-500/20' : 'border-slate-300 dark:border-white/20'}`}>
-                            {isSelected && <span className="h-2.5 w-2.5 bg-indigo-600 dark:bg-indigo-400 rounded-sm"></span>}
+                          <span className={`h-7 w-7 shrink-0 rounded-xl text-xs font-bold font-mono flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                              : 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-gray-300'
+                          }`}>
+                            {optionLetter}
                           </span>
-                          <LaTeXRenderer text={opt.content} />
+                          <div className="overflow-x-auto">
+                            <LaTeXRenderer text={opt.content} />
+                          </div>
                         </div>
                         {opt.media_url && (
                           <img src={opt.media_url} alt="Option attach" className="h-10 w-10 sm:h-12 sm:w-12 object-cover rounded-lg shrink-0" />
@@ -1027,7 +1047,7 @@ export const ExamSessionPage: React.FC = () => {
             <button
               onClick={() => setCurrentIdx(prev => Math.max(0, prev - 1))}
               disabled={currentIdx === 0}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 bg-white/80 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 text-slate-700 dark:text-gray-300 border border-slate-200/80 dark:border-white/5 rounded-xl text-xs sm:text-sm font-bold transition shadow-sm active:scale-95"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 bg-white/80 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 text-slate-700 dark:text-gray-300 border border-slate-200/80 dark:border-white/5 rounded-xl text-xs sm:text-sm font-bold transition shadow-sm active:scale-95 btn-press"
             >
               <ChevronLeft className="h-4 w-4" />
               <span>Sebelumnya</span>
@@ -1035,7 +1055,7 @@ export const ExamSessionPage: React.FC = () => {
 
             <button
               onClick={toggleFlag}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 border rounded-xl text-xs sm:text-sm font-bold transition shadow-sm active:scale-95 ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 border rounded-xl text-xs sm:text-sm font-bold transition shadow-sm active:scale-95 btn-press ${
                 currentQuestion.is_flagged
                   ? 'bg-amber-100 dark:bg-yellow-500/20 border-amber-300 dark:border-yellow-500/40 text-amber-900 dark:text-yellow-400'
                   : 'bg-white/80 dark:bg-white/5 border-slate-200/80 dark:border-white/5 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
@@ -1048,7 +1068,7 @@ export const ExamSessionPage: React.FC = () => {
             <button
               onClick={() => setCurrentIdx(prev => Math.min(questions.length - 1, prev + 1))}
               disabled={currentIdx === questions.length - 1}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 bg-white/80 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 text-slate-700 dark:text-gray-300 border border-slate-200/80 dark:border-white/5 rounded-xl text-xs sm:text-sm font-bold transition shadow-sm active:scale-95"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-3 px-4 bg-white/80 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 text-slate-700 dark:text-gray-300 border border-slate-200/80 dark:border-white/5 rounded-xl text-xs sm:text-sm font-bold transition shadow-sm active:scale-95 btn-press"
             >
               <span>Selanjutnya</span>
               <ChevronRight className="h-4 w-4" />
@@ -1076,7 +1096,7 @@ export const ExamSessionPage: React.FC = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentIdx(index)}
-                    className={`h-11 rounded-xl text-xs font-bold font-mono transition flex items-center justify-center border shadow-sm ${
+                    className={`h-11 rounded-xl text-xs font-bold font-mono transition flex items-center justify-center border shadow-sm btn-press ${
                       isCurrent
                         ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/30'
                         : isFlagged
