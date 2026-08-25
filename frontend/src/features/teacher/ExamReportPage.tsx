@@ -397,7 +397,7 @@ export const ExamReportPage: React.FC = () => {
           <button
             onClick={() => selectedExamId && fetchReport(selectedExamId)}
             disabled={loadingReport || !selectedExamId}
-            className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-gray-300 rounded-xl transition"
+            className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-gray-300 rounded-xl transition btn-press"
             title="Muat Ulang Laporan"
           >
             <RefreshCw className={`h-4 w-4 ${loadingReport ? 'animate-spin text-indigo-500' : ''}`} />
@@ -407,7 +407,7 @@ export const ExamReportPage: React.FC = () => {
           <button
             onClick={handleExportCsv}
             disabled={exportingCsv || !report}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold transition shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold transition shadow-lg shadow-emerald-600/20 disabled:opacity-50 btn-press"
           >
             <FileSpreadsheet className="h-4 w-4" />
             <span>{exportingCsv ? 'Mengekspor...' : 'Ekspor Excel'}</span>
@@ -416,7 +416,7 @@ export const ExamReportPage: React.FC = () => {
           <button
             onClick={() => setShowPrintModal(true)}
             disabled={!report || report.students.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold transition shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-bold transition shadow-lg shadow-indigo-600/20 disabled:opacity-50 btn-press"
           >
             <Printer className="h-4 w-4" />
             <span>Cetak Dokumen</span>
@@ -451,7 +451,7 @@ export const ExamReportPage: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             
             {/* Card 1: Rata-Rata Nilai */}
-            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-indigo-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between card-interactive">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Rata-Rata</span>
                 <div className="p-1.5 sm:p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
@@ -469,7 +469,7 @@ export const ExamReportPage: React.FC = () => {
             </div>
 
             {/* Card 2: Nilai Tertinggi */}
-            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-emerald-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between card-interactive">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Tertinggi</span>
                 <div className="p-1.5 sm:p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
@@ -487,7 +487,7 @@ export const ExamReportPage: React.FC = () => {
             </div>
 
             {/* Card 3: Nilai Terendah */}
-            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-rose-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between card-interactive">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Terendah</span>
                 <div className="p-1.5 sm:p-2 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
@@ -505,7 +505,7 @@ export const ExamReportPage: React.FC = () => {
             </div>
 
             {/* Card 4: Tingkat Kelulusan */}
-            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-teal-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between card-interactive">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Kelulusan</span>
                 <div className="p-1.5 sm:p-2 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl">
@@ -523,7 +523,7 @@ export const ExamReportPage: React.FC = () => {
             </div>
 
             {/* Card 5: Total Peserta */}
-            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-blue-500/30 transition col-span-2 sm:col-span-1">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between card-interactive col-span-2 sm:col-span-1">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Peserta</span>
                 <div className="p-1.5 sm:p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
