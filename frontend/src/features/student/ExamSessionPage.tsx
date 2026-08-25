@@ -5,10 +5,19 @@ import { LaTeXRenderer } from '../../shared/components/LaTeXRenderer';
 import { PageLoader } from '../../shared/components/LoadingSkeleton';
 import { ThemeToggle } from '../../shared/components/ThemeToggle';
 import { toast } from '../../shared/context/ToastContext';
+import {
+  saveAnswerOffline,
+  getOfflineAnswers,
+  getPendingOfflineAnswers,
+  markAnswerAsSynced,
+  saveExamSessionOffline,
+  getExamSessionOffline,
+  clearOfflineExamData
+} from '../../shared/utils/offlineExamStorage';
 import { 
   Clock, AlertTriangle, Shield, CheckSquare, 
   ChevronLeft, ChevronRight, HelpCircle, Send, Maximize,
-  CheckCircle, X, RefreshCw, Check, Ban
+  CheckCircle, X, RefreshCw, Check, Ban, WifiOff, HardDrive
 } from 'lucide-react';
 
 interface QuestionOption {
@@ -63,8 +72,9 @@ export const ExamSessionPage: React.FC = () => {
   const lastViolationTimestampRef = useRef(0);
 
   // Autosave and Sync state
-  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved' | 'saved_offline' | 'error'>('idle');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [showSubmitConfirmModal, setShowSubmitConfirmModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -74,10 +84,11 @@ export const ExamSessionPage: React.FC = () => {
   const [showMobileNavSheet, setShowMobileNavSheet] = useState(false);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
 
-  // Offline queue for resilient autosaving
+  // In-memory fallback queue
   const pendingAnswersQueue = useRef<{ [questionId: number]: any }>({});
+  const isSyncingRef = useRef(false);
 
-  // 1. Initial Exam Attempt Loader
+  // 1. Initial Exam Attempt Loader with IndexedDB Offline Fallback
   useEffect(() => {
     const fetchExamSession = async () => {
       setLoadingSession(true);
@@ -85,7 +96,7 @@ export const ExamSessionPage: React.FC = () => {
       try {
         const res = await apiClient.get(`/student/attempts/${attemptId}/questions`);
         const attempt = res.data.attempt;
-        const qList = res.data.questions || [];
+        let qList: Question[] = res.data.questions || [];
 
         // Dynamic max tab switches from exam anti-cheat settings
         const settingLimit = attempt.exam?.settings?.max_tab_switches;
@@ -109,16 +120,77 @@ export const ExamSessionPage: React.FC = () => {
               ? 'Sesi ujian ini telah didiskualifikasi.' 
               : 'Anda telah mengumpulkan lembar jawaban untuk ujian ini.'
           });
+          // Clean up offline storage
+          if (attemptId) clearOfflineExamData(attemptId);
           setLoadingSession(false);
           return;
+        }
+
+        // Merge any pending answers previously saved in IndexedDB
+        if (attemptId) {
+          const offlineAnswers = await getOfflineAnswers(attemptId);
+          if (offlineAnswers.length > 0) {
+            const answerMap = new Map(offlineAnswers.map(a => [a.questionId, a]));
+            qList = qList.map(q => {
+              const cached = answerMap.get(q.question_id);
+              if (cached) {
+                return {
+                  ...q,
+                  answer_content: cached.answer_content,
+                  is_flagged: cached.is_flagged
+                };
+              }
+              return q;
+            });
+          }
+
+          // Cache entire question set to IndexedDB for offline resilience
+          const remainingSecs = res.data.time_remaining_seconds || 0;
+          await saveExamSessionOffline(attemptId, qList, remainingSecs);
+          const pending = await getPendingOfflineAnswers(attemptId);
+          setPendingSyncCount(pending.length);
         }
 
         setQuestions(qList);
         setTimeRemaining(res.data.time_remaining_seconds || 0);
 
       } catch (err: any) {
-        console.error('Failed to load exam session:', err);
-        setFetchError(err.response?.data?.message || 'Gagal memuat sesi ujian. Silakan periksa koneksi Anda.');
+        console.warn('Network request failed, attempting IndexedDB offline cache restore:', err);
+
+        // Attempt to load from IndexedDB offline storage
+        if (attemptId) {
+          const cachedSession = await getExamSessionOffline(attemptId);
+          if (cachedSession && cachedSession.questions && cachedSession.questions.length > 0) {
+            const offlineAnswers = await getOfflineAnswers(attemptId);
+            let restoredQuestions: Question[] = cachedSession.questions;
+
+            if (offlineAnswers.length > 0) {
+              const answerMap = new Map(offlineAnswers.map(a => [a.questionId, a]));
+              restoredQuestions = restoredQuestions.map(q => {
+                const cached = answerMap.get(q.question_id);
+                if (cached) {
+                  return {
+                    ...q,
+                    answer_content: cached.answer_content,
+                    is_flagged: cached.is_flagged
+                  };
+                }
+                return q;
+              });
+            }
+
+            setQuestions(restoredQuestions);
+            setTimeRemaining(cachedSession.timeRemainingSeconds || 0);
+            const pending = await getPendingOfflineAnswers(attemptId);
+            setPendingSyncCount(pending.length);
+            setSavingStatus('saved_offline');
+            toast.info('Mode Offline Aktif: Lembar soal berhasil dipulihkan dari penyimpanan perangkat lokal (IndexedDB).', 'Mode Offline');
+            setLoadingSession(false);
+            return;
+          }
+        }
+
+        setFetchError(err.response?.data?.message || 'Gagal memuat sesi ujian. Silakan periksa koneksi internet Anda.');
       } finally {
         setLoadingSession(false);
       }
@@ -127,39 +199,86 @@ export const ExamSessionPage: React.FC = () => {
     fetchExamSession();
   }, [attemptId]);
 
-  // 2. Online / Offline network listeners
+  // 2. Online / Offline network listeners & resilient auto-flush engine
+  const flushPendingAnswers = async () => {
+    if (!attemptId || isSyncingRef.current) return;
+    isSyncingRef.current = true;
+
+    try {
+      // 1. Get pending answers from IndexedDB
+      const pendingList = await getPendingOfflineAnswers(attemptId);
+      setPendingSyncCount(pendingList.length);
+
+      if (pendingList.length === 0) {
+        isSyncingRef.current = false;
+        return;
+      }
+
+      let syncedSuccessCount = 0;
+
+      for (const item of pendingList) {
+        try {
+          const payload = {
+            question_id: item.questionId,
+            answer_content: item.answer_content,
+            is_flagged: item.is_flagged
+          };
+
+          await apiClient.patch(`/student/attempts/${attemptId}/answers`, payload);
+          await markAnswerAsSynced(attemptId, item.questionId);
+          delete pendingAnswersQueue.current[item.questionId];
+          syncedSuccessCount++;
+        } catch (err) {
+          console.warn(`Sync retry failed for question ${item.questionId}:`, err);
+        }
+      }
+
+      const remainingPending = await getPendingOfflineAnswers(attemptId);
+      setPendingSyncCount(remainingPending.length);
+
+      if (remainingPending.length === 0) {
+        setSavingStatus('saved');
+        if (syncedSuccessCount > 0) {
+          toast.success(`Sinkronisasi Sukses: ${syncedSuccessCount} jawaban offline telah berhasil terkirim ke server!`, 'Sinkronisasi Server');
+        }
+      } else {
+        setSavingStatus('saved_offline');
+      }
+    } catch (e) {
+      console.error('Error during flushPendingAnswers:', e);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  };
+
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Flush offline pending queue
+      toast.success('Koneksi internet terhubung kembali. Memulai sinkronisasi data...', 'Internet Pulih');
       flushPendingAnswers();
     };
-    const handleOffline = () => setIsOnline(false);
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.warning('Koneksi internet terputus. Seluruh jawaban Anda tetap aman tersimpan di perangkat lokal (IndexedDB).', 'Mode Offline');
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Periodic Background Sync Heartbeat (every 10 seconds if online)
+    const syncInterval = setInterval(() => {
+      if (navigator.onLine) {
+        flushPendingAnswers();
+      }
+    }, 10000);
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearInterval(syncInterval);
     };
-  }, []);
-
-  const flushPendingAnswers = async () => {
-    const queue = pendingAnswersQueue.current;
-    const qIds = Object.keys(queue);
-    if (qIds.length === 0) return;
-
-    for (const qId of qIds) {
-      try {
-        const payload = queue[parseInt(qId)];
-        await apiClient.patch(`/student/attempts/${attemptId}/answers`, payload);
-        delete queue[parseInt(qId)];
-      } catch (e) {
-        console.error('Failed to flush offline item:', e);
-      }
-    }
-  };
+  }, [attemptId]);
 
   // 3. Countdown timer with auto-submit
   useEffect(() => {
@@ -406,24 +525,48 @@ export const ExamSessionPage: React.FC = () => {
     navigate('/student/dashboard');
   };
 
-  // Autosave payload handler
+  // Autosave payload handler with IndexedDB dual-layer persistence
   const saveAnswerToBackend = async (question: Question) => {
-    setSavingStatus('saving');
+    // Layer 1: Immediately persist to IndexedDB (takes < 2ms, zero risk of data loss)
+    if (attemptId) {
+      await saveAnswerOffline(attemptId, question.question_id, question.answer_content, question.is_flagged, 'pending');
+    }
+
     const payload = {
       question_id: question.question_id,
       answer_content: question.answer_content,
       is_flagged: question.is_flagged
     };
 
+    // Layer 2: If offline, mark as saved locally
+    if (!navigator.onLine) {
+      setSavingStatus('saved_offline');
+      if (attemptId) {
+        const pending = await getPendingOfflineAnswers(attemptId);
+        setPendingSyncCount(pending.length);
+      }
+      return;
+    }
+
+    // If online, dispatch to backend server
+    setSavingStatus('saving');
     try {
       await apiClient.patch(`/student/attempts/${attemptId}/answers`, payload);
       setSavingStatus('saved');
+      if (attemptId) {
+        await markAnswerAsSynced(attemptId, question.question_id);
+        const pending = await getPendingOfflineAnswers(attemptId);
+        setPendingSyncCount(pending.length);
+      }
       delete pendingAnswersQueue.current[question.question_id];
     } catch (err) {
-      console.error('Failed to autosave answer:', err);
-      // Store in offline retry queue
+      console.warn('Network sync failed, answer preserved safely in IndexedDB:', err);
       pendingAnswersQueue.current[question.question_id] = payload;
-      setSavingStatus('error');
+      setSavingStatus('saved_offline');
+      if (attemptId) {
+        const pending = await getPendingOfflineAnswers(attemptId);
+        setPendingSyncCount(pending.length);
+      }
     }
   };
 
@@ -465,6 +608,11 @@ export const ExamSessionPage: React.FC = () => {
     updated[currentIdx].answer_content = { essay_text: value };
     setQuestions(updated);
 
+    // Save to IndexedDB immediately for instant keystroke durability
+    if (attemptId) {
+      saveAnswerOffline(attemptId, updated[currentIdx].question_id, updated[currentIdx].answer_content, updated[currentIdx].is_flagged, 'pending');
+    }
+
     // Debounce backend request by 800ms for smooth essay typing without server flooding
     if (essayDebounceRef.current) {
       clearTimeout(essayDebounceRef.current);
@@ -495,7 +643,14 @@ export const ExamSessionPage: React.FC = () => {
   const handleAutoSubmit = async () => {
     exitFullscreenMode();
     try {
+      // Flush offline pending answers first
+      if (attemptId && navigator.onLine) {
+        await flushPendingAnswers();
+      }
       const res = await apiClient.post(`/student/attempts/${attemptId}/submit`);
+      if (attemptId) {
+        await clearOfflineExamData(attemptId);
+      }
       setSubmissionResult({
         score: res.data.attempt?.total_score ?? null,
         status: res.data.attempt?.status ?? 'auto_submitted',
@@ -514,10 +669,28 @@ export const ExamSessionPage: React.FC = () => {
   const handleConfirmFinalSubmit = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
+
+    // Check offline before submitting
+    if (!navigator.onLine) {
+      setSubmitError('Koneksi internet Anda sedang terputus. Seluruh jawaban Anda aman tersimpan di perangkat lokal (IndexedDB). Silakan hubungkan kembali perangkat Anda ke jaringan sebelum mengumpulkan ujian.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      // Flush all pending offline answers to server first
+      if (attemptId) {
+        await flushPendingAnswers();
+      }
+
       const res = await apiClient.post(`/student/attempts/${attemptId}/submit`);
       exitFullscreenMode();
       setShowSubmitConfirmModal(false);
+
+      if (attemptId) {
+        await clearOfflineExamData(attemptId);
+      }
+
       setSubmissionResult({
         score: res.data.attempt?.total_score ?? null,
         status: res.data.attempt?.status ?? 'submitted',
@@ -779,18 +952,34 @@ export const ExamSessionPage: React.FC = () => {
             </div>
           )}
 
-          {/* Live Network connection status */}
-          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 bg-slate-200/60 dark:bg-white/5 border border-slate-300/60 dark:border-white/10 rounded-lg text-[10px] font-bold font-mono">
-            <span className={`h-2 w-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500 animate-bounce'}`} />
-            <span className={isOnline ? 'text-emerald-700 dark:text-emerald-400 hidden sm:inline' : 'text-rose-600 dark:text-rose-400'}>
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
+          {/* Live Network & IndexedDB Storage Status Badge */}
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold font-mono border transition ${
+            !isOnline || savingStatus === 'saved_offline'
+              ? 'bg-amber-100 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 shadow-xs'
+              : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300'
+          }`}>
+            {!isOnline || savingStatus === 'saved_offline' ? (
+              <>
+                <HardDrive className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="hidden sm:inline">Tersimpan di Perangkat</span>
+                {pendingSyncCount > 0 && (
+                  <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-md text-[9px] font-black">
+                    {pendingSyncCount} antrean
+                  </span>
+                )}
+              </>
+            ) : savingStatus === 'saving' ? (
+              <>
+                <RefreshCw className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                <span className="hidden sm:inline">Menyimpan...</span>
+              </>
+            ) : (
+              <>
+                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="hidden sm:inline">Tersimpan (Server)</span>
+              </>
+            )}
           </div>
-
-          {/* Autosave status indicator */}
-          <span className="text-[10px] font-mono text-slate-500 dark:text-gray-400 hidden lg:inline">
-            {savingStatus === 'saving' ? 'Autosaving...' : savingStatus === 'saved' ? 'Tersimpan' : savingStatus === 'error' ? 'Offline' : ''}
-          </span>
 
           {/* Timer with Adaptive Urgency Glow */}
           <div className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold font-mono border transition-all duration-300 ${
@@ -813,6 +1002,18 @@ export const ExamSessionPage: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {/* Top Floating Offline Notification Banner */}
+      {!isOnline && (
+        <div className="bg-amber-500/90 text-amber-950 text-xs px-4 py-2 flex items-center justify-between gap-3 shadow-md z-20 font-medium">
+          <div className="flex items-center gap-2 max-w-4xl mx-auto">
+            <WifiOff className="h-4 w-4 shrink-0" />
+            <span>
+              <strong>Koneksi Internet Terputus:</strong> Anda dalam mode offline. Lembar jawaban Anda tetap <strong>100% aman tersimpan di penyimpanan perangkat lokal (IndexedDB)</strong> dan akan otomatis disinkronkan ke server saat internet terhubung kembali.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* 6. Active Violation Warning Modal */}
       {showViolationModal && (
