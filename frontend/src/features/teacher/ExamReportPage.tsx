@@ -280,13 +280,13 @@ export const ExamReportPage: React.FC = () => {
         </div>
 
         {/* Searchable Exam Combobox & Export Actions */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           
-          {/* Searchable Combobox */}
-          <div className="relative flex-1 md:w-80 z-50" ref={examSelectorRef}>
+          {/* Searchable Combobox (Fixed Compact Width) */}
+          <div className="relative w-full sm:w-60 md:w-64 z-50 shrink-0" ref={examSelectorRef}>
             <div 
               onClick={() => setIsExamMenuOpen(true)}
-              className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white dark:bg-[#0c101c] border rounded-2xl cursor-pointer transition shadow-xs ${
+              className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-white dark:bg-[#0c101c] border rounded-2xl cursor-pointer transition shadow-xs ${
                 isExamMenuOpen 
                   ? 'border-indigo-500 ring-2 ring-indigo-500/20' 
                   : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
@@ -299,20 +299,15 @@ export const ExamReportPage: React.FC = () => {
                     type="text"
                     value={examSearchQuery}
                     onChange={(e) => setExamSearchQuery(e.target.value)}
-                    placeholder="Ketik nama ujian..."
+                    placeholder="Cari ujian..."
                     autoFocus
                     className="w-full bg-transparent text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none"
                   />
                 ) : (
-                  <div className="flex items-center gap-1.5 truncate">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                      {selectedExam ? selectedExam.title : (loadingExams ? 'Memuat ujian...' : 'Pilih Ujian')}
+                      {selectedExam ? selectedExam.title : (loadingExams ? 'Memuat...' : 'Pilih Ujian')}
                     </span>
-                    {selectedExam?.subject && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-bold rounded shrink-0">
-                        {selectedExam.subject.name}
-                      </span>
-                    )}
                   </div>
                 )}
               </div>
@@ -336,7 +331,7 @@ export const ExamReportPage: React.FC = () => {
 
             {/* Dropdown Popup List with high z-index and solid background */}
             {isExamMenuOpen && (
-              <div className="absolute left-0 md:left-auto md:right-0 top-full mt-2 w-full md:w-96 z-50 rounded-2xl border border-slate-200/90 dark:border-white/10 shadow-2xl overflow-hidden animate-scale-up max-h-80 flex flex-col bg-white dark:bg-[#0c101c] divide-y divide-slate-100 dark:divide-white/5">
+              <div className="absolute left-0 md:left-auto md:right-0 top-full mt-2 w-full sm:w-80 md:w-96 z-50 rounded-2xl border border-slate-200/90 dark:border-white/10 shadow-2xl overflow-hidden animate-scale-up max-h-80 flex flex-col bg-white dark:bg-[#0c101c] divide-y divide-slate-100 dark:divide-white/5">
                 <div className="p-2.5 bg-slate-50 dark:bg-white/[0.03] flex items-center justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold px-3">
                   <span>Daftar Paket Ujian ({filteredExams.length})</span>
                   {examSearchQuery && (
