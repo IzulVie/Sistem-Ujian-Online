@@ -261,8 +261,8 @@ export const ExamReportPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       
-      {/* Top Header & Exam Selector */}
-      <div className="glass-panel p-6 rounded-3xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Top Header & Exam Selector (Stacking Context z-40) */}
+      <div className="glass-panel p-6 rounded-3xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-40">
         <div>
           <div className="flex items-center gap-3">
             <div className="p-3 bg-indigo-600/10 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-indigo-500/20">
@@ -283,7 +283,7 @@ export const ExamReportPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           
           {/* Searchable Combobox */}
-          <div className="relative flex-1 md:w-80" ref={examSelectorRef}>
+          <div className="relative flex-1 md:w-80 z-50" ref={examSelectorRef}>
             <div 
               onClick={() => setIsExamMenuOpen(true)}
               className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white dark:bg-[#0c101c] border rounded-2xl cursor-pointer transition shadow-xs ${
@@ -334,17 +334,17 @@ export const ExamReportPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Dropdown Popup List */}
+            {/* Dropdown Popup List with high z-index and solid background */}
             {isExamMenuOpen && (
-              <div className="absolute left-0 right-0 top-full mt-2 z-50 glass-panel rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-scale-up max-h-80 flex flex-col bg-white/95 dark:bg-[#0c101c]/95 backdrop-blur-xl">
-                <div className="p-2 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold px-3">
+              <div className="absolute left-0 md:left-auto md:right-0 top-full mt-2 w-full md:w-96 z-50 rounded-2xl border border-slate-200/90 dark:border-white/10 shadow-2xl overflow-hidden animate-scale-up max-h-80 flex flex-col bg-white dark:bg-[#0c101c] divide-y divide-slate-100 dark:divide-white/5">
+                <div className="p-2.5 bg-slate-50 dark:bg-white/[0.03] flex items-center justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold px-3">
                   <span>Daftar Paket Ujian ({filteredExams.length})</span>
                   {examSearchQuery && (
                     <span className="text-indigo-600 dark:text-indigo-400 text-[10px]">Filter aktif</span>
                   )}
                 </div>
 
-                <div className="overflow-y-auto max-h-64 p-1.5 space-y-1">
+                <div className="overflow-y-auto max-h-64 p-1.5 space-y-1 bg-white dark:bg-[#0c101c]">
                   {loadingExams ? (
                     <div className="p-4 text-center text-xs text-slate-400 font-medium">Memuat daftar ujian...</div>
                   ) : filteredExams.length === 0 ? (
@@ -428,6 +428,9 @@ export const ExamReportPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Main Content Area (Stacking Context z-10) */}
+      <div className="relative z-10 space-y-6">
 
       {loadingReport ? (
         <div className="space-y-4">
@@ -911,6 +914,7 @@ export const ExamReportPage: React.FC = () => {
 
         </>
       )}
+      </div>
 
     </div>
   );
