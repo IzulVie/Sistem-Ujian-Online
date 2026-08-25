@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { apiClient } from '../../shared/api/client';
 import { useToast } from '../../shared/context/ToastContext';
 import { TableSkeleton } from '../../shared/components/LoadingSkeleton';
@@ -17,7 +17,10 @@ import {
   Filter,
   RefreshCw,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  ChevronDown,
+  Check,
+  X
 } from 'lucide-react';
 
 interface ExamItem {
@@ -128,9 +131,25 @@ export const ExamReportPage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  // Exam Search Combobox states
+  const [isExamMenuOpen, setIsExamMenuOpen] = useState<boolean>(false);
+  const [examSearchQuery, setExamSearchQuery] = useState<string>('');
+  const examSelectorRef = useRef<HTMLDivElement>(null);
+
   // Load Exam List on mount
   useEffect(() => {
     fetchExams();
+  }, []);
+
+  // Click outside to close exam dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (examSelectorRef.current && !examSelectorRef.current.contains(e.target as Node)) {
+        setIsExamMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchExams = async () => {
@@ -148,6 +167,22 @@ export const ExamReportPage: React.FC = () => {
       setLoadingExams(false);
     }
   };
+
+  // Filtered Exams based on Combobox typing
+  const filteredExams = useMemo(() => {
+    if (!examSearchQuery.trim()) return exams;
+    const q = examSearchQuery.toLowerCase();
+    return exams.filter((ex) => {
+      const matchTitle = ex.title.toLowerCase().includes(q);
+      const matchSubject = ex.subject?.name?.toLowerCase().includes(q) || false;
+      const matchCode = ex.subject?.code?.toLowerCase().includes(q) || false;
+      return matchTitle || matchSubject || matchCode;
+    });
+  }, [exams, examSearchQuery]);
+
+  const selectedExam = useMemo(() => {
+    return exams.find((e) => e.id === selectedExamId) || null;
+  }, [exams, selectedExamId]);
 
   // Load Report whenever selectedExamId changes
   useEffect(() => {
@@ -244,25 +279,125 @@ export const ExamReportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Exam Dropdown Selector & Export Actions */}
+        {/* Searchable Exam Combobox & Export Actions */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <select
-            value={selectedExamId || ''}
-            onChange={(e) => setSelectedExamId(Number(e.target.value))}
-            className="flex-1 md:w-64 px-4 py-2.5 bg-white dark:bg-[#0c101c] border border-slate-200 dark:border-white/10 rounded-2xl text-xs font-bold text-slate-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {loadingExams ? (
-              <option>Memuat daftar ujian...</option>
-            ) : exams.length === 0 ? (
-              <option>Belum ada ujian dibuat</option>
-            ) : (
-              exams.map((ex) => (
-                <option key={ex.id} value={ex.id}>
-                  {ex.title} ({ex.subject?.name || 'Umum'})
-                </option>
-              ))
+          
+          {/* Searchable Combobox */}
+          <div className="relative flex-1 md:w-80" ref={examSelectorRef}>
+            <div 
+              onClick={() => setIsExamMenuOpen(true)}
+              className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white dark:bg-[#0c101c] border rounded-2xl cursor-pointer transition shadow-xs ${
+                isExamMenuOpen 
+                  ? 'border-indigo-500 ring-2 ring-indigo-500/20' 
+                  : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <Search className="h-4 w-4 text-indigo-500 shrink-0" />
+                {isExamMenuOpen ? (
+                  <input
+                    type="text"
+                    value={examSearchQuery}
+                    onChange={(e) => setExamSearchQuery(e.target.value)}
+                    placeholder="Ketik nama ujian..."
+                    autoFocus
+                    className="w-full bg-transparent text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none"
+                  />
+                ) : (
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      {selectedExam ? selectedExam.title : (loadingExams ? 'Memuat ujian...' : 'Pilih Ujian')}
+                    </span>
+                    {selectedExam?.subject && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-bold rounded shrink-0">
+                        {selectedExam.subject.name}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                {examSearchQuery && isExamMenuOpen && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExamSearchQuery('');
+                    }}
+                    className="p-0.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-gray-200"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${isExamMenuOpen ? 'rotate-180 text-indigo-500' : ''}`} />
+              </div>
+            </div>
+
+            {/* Dropdown Popup List */}
+            {isExamMenuOpen && (
+              <div className="absolute left-0 right-0 top-full mt-2 z-50 glass-panel rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden animate-scale-up max-h-80 flex flex-col bg-white/95 dark:bg-[#0c101c]/95 backdrop-blur-xl">
+                <div className="p-2 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold px-3">
+                  <span>Daftar Paket Ujian ({filteredExams.length})</span>
+                  {examSearchQuery && (
+                    <span className="text-indigo-600 dark:text-indigo-400 text-[10px]">Filter aktif</span>
+                  )}
+                </div>
+
+                <div className="overflow-y-auto max-h-64 p-1.5 space-y-1">
+                  {loadingExams ? (
+                    <div className="p-4 text-center text-xs text-slate-400 font-medium">Memuat daftar ujian...</div>
+                  ) : filteredExams.length === 0 ? (
+                    <div className="p-6 text-center">
+                      <Search className="h-6 w-6 text-slate-300 dark:text-gray-600 mx-auto mb-1.5" />
+                      <p className="text-xs font-bold text-slate-700 dark:text-gray-300">Tidak ada ujian ditemukan</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Coba gunakan kata kunci pencarian lain</p>
+                    </div>
+                  ) : (
+                    filteredExams.map((ex) => {
+                      const isSelected = ex.id === selectedExamId;
+                      return (
+                        <div
+                          key={ex.id}
+                          onClick={() => {
+                            setSelectedExamId(ex.id);
+                            setIsExamMenuOpen(false);
+                            setExamSearchQuery('');
+                          }}
+                          className={`p-2.5 rounded-xl cursor-pointer transition flex items-center justify-between gap-3 text-xs ${
+                            isSelected
+                              ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-950 dark:text-indigo-200 font-bold border border-indigo-200/60 dark:border-indigo-500/30'
+                              : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-gray-300 font-medium'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs ${isSelected ? 'font-black text-indigo-900 dark:text-indigo-100' : 'text-slate-800 dark:text-gray-200 font-bold'} truncate`}>
+                                {ex.title}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-gray-400">
+                              <span className="px-2 py-0.5 bg-slate-100 dark:bg-white/5 rounded text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                                {ex.subject?.name || 'Umum'}
+                              </span>
+                              <span>•</span>
+                              <span>ID: #{ex.id}</span>
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div className="p-1 bg-indigo-600 text-white rounded-full shrink-0">
+                              <Check className="h-3 w-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             )}
-          </select>
+          </div>
 
           <button
             onClick={() => selectedExamId && fetchReport(selectedExamId)}
