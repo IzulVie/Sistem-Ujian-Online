@@ -112,8 +112,11 @@ export const TeacherDashboard: React.FC = () => {
     }
   ];
 
+  // Active exams count
+  const activeExamsCount = exams.filter(e => e.status === 'published').length;
+
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 animate-fade-in">
       
       {/* 1. Welcome Banner */}
       <WelcomeBanner
@@ -123,7 +126,7 @@ export const TeacherDashboard: React.FC = () => {
         metrics={[
           { label: 'Bank Soal', value: questions.length, highlight: true },
           { label: 'Paket Soal', value: packages.length },
-          { label: 'Jadwal Ujian', value: exams.length }
+          { label: 'Ujian Aktif', value: activeExamsCount }
         ]}
         actionLabel="+ Buat Soal Baru"
         onAction={() => navigate('/teacher/questions')}
@@ -155,15 +158,15 @@ export const TeacherDashboard: React.FC = () => {
           <GradientStatCard
             title="Jadwal Ujian"
             value={`${exams.length} Sesi`}
-            subtitle="Ujian terjadwal & aktif"
+            subtitle={`${activeExamsCount} sesi sedang aktif`}
             icon={Calendar}
             variant="amber"
             onClick={() => navigate('/teacher/exams')}
           />
           <GradientStatCard
-            title="Koreksi Manual"
-            value="Koreksi"
-            subtitle="Penilaian lembar essay"
+            title="Koreksi & Laporan"
+            value="Hasil Ujian"
+            subtitle="Penilaian lembar essay & nilai"
             icon={FileText}
             variant="emerald"
             onClick={() => navigate('/teacher/grading')}
@@ -217,7 +220,7 @@ export const TeacherDashboard: React.FC = () => {
 
               <button
                 onClick={() => navigate('/teacher/exams')}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-xs font-bold text-cyan-700 dark:text-cyan-300 transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-xs font-bold text-cyan-700 dark:text-cyan-300 transition btn-press"
               >
                 <span>Kelola Ujian</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -230,8 +233,9 @@ export const TeacherDashboard: React.FC = () => {
                   <tr className="border-b border-slate-200/80 dark:border-white/5 text-slate-500 dark:text-gray-400 uppercase text-[10px] tracking-wider font-bold">
                     <th className="py-3 px-3">Nama Ujian</th>
                     <th className="py-3 px-3">Mata Pelajaran</th>
+                    <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3">Durasi</th>
-                    <th className="py-3 px-3 text-right">Aksi</th>
+                    <th className="py-3 px-3 text-right">Aksi Cepat</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/60 dark:divide-white/5 text-slate-700 dark:text-gray-300 font-medium">
@@ -247,6 +251,17 @@ export const TeacherDashboard: React.FC = () => {
                             {ex.subject?.name || 'Mata Pelajaran'}
                           </span>
                         </td>
+                        <td className="py-3 px-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            ex.status === 'published'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                              : ex.status === 'closed'
+                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
+                          }`}>
+                            {ex.status === 'published' ? 'Aktif' : ex.status === 'closed' ? 'Selesai' : 'Draft'}
+                          </span>
+                        </td>
                         <td className="py-3 px-3 text-slate-500 dark:text-gray-400 font-mono text-[11px]">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5 text-slate-400" />
@@ -254,19 +269,36 @@ export const TeacherDashboard: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => navigate('/teacher/grading')}
-                            className="px-3.5 py-1.5 bg-indigo-600 dark:bg-indigo-600/30 hover:bg-indigo-500 dark:hover:bg-indigo-600 text-white dark:text-indigo-200 hover:text-white rounded-xl text-[11px] font-bold transition shadow-sm"
-                          >
-                            Koreksi
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => navigate('/teacher/reports')}
+                              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300 rounded-xl text-[11px] font-bold transition btn-press"
+                              title="Lihat Laporan Nilai"
+                            >
+                              Laporan
+                            </button>
+                            <button
+                              onClick={() => navigate('/teacher/grading')}
+                              className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[11px] font-bold transition shadow-xs btn-press"
+                              title="Koreksi Jawaban Essay"
+                            >
+                              Koreksi
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-6 text-center text-slate-500 dark:text-gray-500 text-xs">
-                        Belum ada jadwal ujian yang dibuat
+                      <td colSpan={5} className="py-8 text-center text-slate-500 dark:text-gray-500 text-xs">
+                        <Calendar className="h-8 w-8 mx-auto mb-2 text-slate-400 dark:text-gray-600 opacity-60" />
+                        <p className="font-medium">Belum ada jadwal ujian aktif</p>
+                        <button
+                          onClick={() => navigate('/teacher/exams')}
+                          className="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                        >
+                          + Buat Jadwal Ujian Sekarang
+                        </button>
                       </td>
                     </tr>
                   )}
