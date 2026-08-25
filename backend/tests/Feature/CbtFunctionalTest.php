@@ -35,6 +35,7 @@ class CbtFunctionalTest extends TestCase
     protected function resetAuth()
     {
         $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
     }
 
     protected function setUp(): void

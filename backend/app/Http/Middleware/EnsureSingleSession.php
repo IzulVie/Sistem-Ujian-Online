@@ -18,10 +18,10 @@ class EnsureSingleSession
         if ($user) {
             $clientToken = $request->header('X-Session-Token');
 
-            if ($user->active_session_token && $user->active_session_token !== $clientToken) {
+            if ($clientToken && $user->active_session_token && $user->active_session_token !== $clientToken) {
                 if ($user->hasRole('siswa')) {
                     // Revoke current Sanctum token to force logout
-                    $request->user()->currentAccessToken()->delete();
+                    $request->user()->currentAccessToken()?->delete();
 
                     return response()->json([
                         'message' => 'Sesi Anda telah aktif di perangkat lain. Anda telah dikeluarkan otomatis.',

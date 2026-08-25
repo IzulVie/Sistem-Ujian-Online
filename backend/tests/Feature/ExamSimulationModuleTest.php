@@ -223,6 +223,7 @@ class ExamSimulationModuleTest extends TestCase
         auth()->forgetGuards();
         \Illuminate\Support\Facades\Auth::forgetGuards();
         app('auth')->forgetGuards();
+        $this->flushHeaders();
     }
 
     protected function getStudentAuth(): array

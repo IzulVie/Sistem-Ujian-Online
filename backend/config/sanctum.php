@@ -50,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => env('SANCTUM_EXPIRATION', 480), // 8 Hours (480 Minutes)
+    'expiration' => env('SANCTUM_EXPIRATION') !== null ? (int) env('SANCTUM_EXPIRATION') : 480, // 8 Hours (480 Minutes)
 
     /*
     |--------------------------------------------------------------------------
