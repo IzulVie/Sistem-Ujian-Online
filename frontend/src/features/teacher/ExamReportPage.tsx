@@ -448,93 +448,93 @@ export const ExamReportPage: React.FC = () => {
       ) : (
         <>
           {/* Executive KPI Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             
             {/* Card 1: Rata-Rata Nilai */}
-            <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-indigo-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-indigo-500/30 transition">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Rata-Rata Nilai</span>
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                  <TrendingUp className="h-4 w-4" />
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Rata-Rata</span>
+                <div className="p-1.5 sm:p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                  <TrendingUp className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              <div className="mt-2 sm:mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                   {report.statistics.average_score}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5">
+                <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5 truncate">
                   KKM: <strong className="text-indigo-600 dark:text-indigo-400">{report.exam.kkm_score}</strong> Poin
                 </div>
               </div>
             </div>
 
             {/* Card 2: Nilai Tertinggi */}
-            <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-emerald-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-emerald-500/30 transition">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Nilai Tertinggi</span>
-                <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
-                  <Award className="h-4 w-4" />
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Tertinggi</span>
+                <div className="p-1.5 sm:p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                  <Award className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+              <div className="mt-2 sm:mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
                   {report.statistics.highest_score}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5">
-                  Skor Maksimal Ujian
+                <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5 truncate">
+                  Skor Maksimal
                 </div>
               </div>
             </div>
 
             {/* Card 3: Nilai Terendah */}
-            <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-rose-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-rose-500/30 transition">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Nilai Terendah</span>
-                <div className="p-2 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
-                  <XCircle className="h-4 w-4" />
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Terendah</span>
+                <div className="p-1.5 sm:p-2 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
+                  <XCircle className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
+              <div className="mt-2 sm:mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
                   {report.statistics.lowest_score}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5">
-                  Skor Terendah Tercatat
+                <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5 truncate">
+                  Skor Terendah
                 </div>
               </div>
             </div>
 
             {/* Card 4: Tingkat Kelulusan */}
-            <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-teal-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-teal-500/30 transition">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Tingkat Kelulusan</span>
-                <div className="p-2 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl">
-                  <CheckCircle2 className="h-4 w-4" />
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Kelulusan</span>
+                <div className="p-1.5 sm:p-2 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl">
+                  <CheckCircle2 className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="text-3xl font-black text-teal-600 dark:text-teal-400 tracking-tight">
+              <div className="mt-2 sm:mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-teal-600 dark:text-teal-400 tracking-tight">
                   {report.statistics.pass_rate_percent}%
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5">
-                  <strong className="text-teal-600">{report.statistics.passed_count} Lulus</strong> / {report.statistics.remedial_count} Remedial
+                <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5 truncate">
+                  <strong className="text-teal-600">{report.statistics.passed_count}</strong> Lulus
                 </div>
               </div>
             </div>
 
             {/* Card 5: Total Peserta */}
-            <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-blue-500/30 transition">
+            <div className="glass-panel p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl relative overflow-hidden flex flex-col justify-between group hover:border-blue-500/30 transition col-span-2 sm:col-span-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Total Partisipasi</span>
-                <div className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
-                  <Users className="h-4 w-4" />
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Peserta</span>
+                <div className="p-1.5 sm:p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
+                  <Users className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              <div className="mt-2 sm:mt-3">
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                   {report.statistics.total_participants}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5">
+                <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 font-medium mt-0.5 truncate">
                   {report.statistics.completed_count} Selesai • {report.statistics.disqualified_count} Diskualifikasi
                 </div>
               </div>
@@ -546,7 +546,7 @@ export const ExamReportPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
             {/* Score Range Distribution Bars */}
-            <div className="lg:col-span-2 glass-panel p-6 rounded-3xl">
+            <div className="lg:col-span-2 glass-panel p-4 sm:p-6 rounded-3xl">
               <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
                 <BarChart3 className="h-4 w-4 text-indigo-500" />
                 Distribusi Rentang Nilai Siswa
@@ -567,8 +567,8 @@ export const ExamReportPage: React.FC = () => {
                   return (
                     <div key={i} className="space-y-1">
                       <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-slate-700 dark:text-gray-300">{range.label}</span>
-                        <span className="text-slate-500 dark:text-gray-400">
+                        <span className="text-slate-700 dark:text-gray-300 text-[11px] sm:text-xs">{range.label}</span>
+                        <span className="text-slate-500 dark:text-gray-400 text-[11px] sm:text-xs">
                           {range.count} Siswa ({percent}%)
                         </span>
                       </div>
@@ -585,7 +585,7 @@ export const ExamReportPage: React.FC = () => {
             </div>
 
             {/* Pass vs Remedial Gauge Card */}
-            <div className="glass-panel p-6 rounded-3xl flex flex-col justify-between">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-2">
                   <Award className="h-4 w-4 text-emerald-500" />
@@ -598,7 +598,7 @@ export const ExamReportPage: React.FC = () => {
 
               <div className="my-6 text-center">
                 <div className="inline-flex items-center justify-center p-6 rounded-full bg-slate-100 dark:bg-white/5 border-4 border-indigo-500/20 relative">
-                  <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400">
+                  <div className="text-3xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">
                     {report.statistics.pass_rate_percent}%
                   </div>
                 </div>
@@ -609,10 +609,10 @@ export const ExamReportPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-200 dark:border-white/5 text-center text-xs">
                 <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/20 rounded-xl">
-                  <span className="text-emerald-700 dark:text-emerald-400 font-bold block">Lulus ({report.statistics.passed_count})</span>
+                  <span className="text-emerald-700 dark:text-emerald-400 font-bold block text-[11px] sm:text-xs">Lulus ({report.statistics.passed_count})</span>
                 </div>
                 <div className="p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/20 rounded-xl">
-                  <span className="text-amber-700 dark:text-amber-400 font-bold block">Remedial ({report.statistics.remedial_count})</span>
+                  <span className="text-amber-700 dark:text-amber-400 font-bold block text-[11px] sm:text-xs">Remedial ({report.statistics.remedial_count})</span>
                 </div>
               </div>
             </div>
@@ -620,10 +620,10 @@ export const ExamReportPage: React.FC = () => {
           </div>
 
           {/* Navigation Tabs (Rekap Nilai vs Analisis Butir Soal) */}
-          <div className="flex bg-slate-200/60 dark:bg-white/5 p-1 rounded-2xl text-xs font-bold gap-1 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row bg-slate-200/60 dark:bg-white/5 p-1 rounded-2xl text-xs font-bold gap-1 w-full">
             <button
               onClick={() => setActiveTab('students')}
-              className={`flex-1 sm:flex-none py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 transition ${
+              className={`flex-1 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition ${
                 activeTab === 'students'
                   ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
                   : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
@@ -637,7 +637,7 @@ export const ExamReportPage: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('analysis')}
-              className={`flex-1 sm:flex-none py-2.5 px-6 rounded-xl flex items-center justify-center gap-2 transition ${
+              className={`flex-1 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition ${
                 activeTab === 'analysis'
                   ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
                   : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
@@ -653,10 +653,10 @@ export const ExamReportPage: React.FC = () => {
 
           {/* TAB 1: REKAPITULASI NILAI SISWA */}
           {activeTab === 'students' && (
-            <div className="glass-panel p-6 rounded-3xl shadow-xl space-y-4">
+            <div className="glass-panel p-4 sm:p-6 rounded-3xl shadow-xl space-y-4">
               
               {/* Table Search & Filter Bar */}
-              <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="relative w-full md:w-80">
                   <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                   <input

@@ -98,64 +98,91 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Mobile Topbar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 glass-panel border-b border-slate-200 dark:border-white/5 px-4 flex items-center justify-between z-30">
-        <div className="flex items-center gap-3">
-          <School className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-          <span className="font-bold text-sm text-slate-900 dark:text-white">CBT Admin</span>
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 glass-panel border-b border-slate-200 dark:border-white/5 px-4 flex items-center justify-between z-40 bg-white/90 dark:bg-[#070a13]/90 backdrop-blur-xl">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-indigo-600/10 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20">
+            <School className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h1 className="font-extrabold text-sm text-slate-900 dark:text-white leading-tight">CBT Admin</h1>
+            <p className="text-[10px] text-slate-500 dark:text-gray-400 font-medium">Manajemen Master Data</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle compact />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-lg"
+            className="p-2 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-white/5"
+            aria-label="Menu"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer Backdrop & Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-slate-900/40 dark:bg-[#070a13]/90 backdrop-blur-md z-20 pt-20 px-4">
-          <nav className="space-y-2 glass-panel p-4 rounded-3xl">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <button
-                  key={item.name}
-                  onClick={() => {
-                    navigate(item.path);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${
-                    isActive 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'text-slate-700 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </button>
-              );
-            })}
-            <button
-              onClick={() => {
-                logout();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl text-sm font-semibold transition"
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Keluar</span>
-            </button>
-          </nav>
+        <div 
+          onClick={() => setMobileMenuOpen(false)}
+          className="md:hidden fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm z-50 pt-20 px-4 pb-6 overflow-y-auto animate-fade-in flex flex-col justify-between"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="glass-panel p-5 rounded-3xl space-y-3 bg-white/95 dark:bg-[#0f172a]/95 border border-slate-200 dark:border-white/10 shadow-2xl animate-scale-up"
+          >
+            <div className="flex items-center gap-3 px-2 py-2 border-b border-slate-100 dark:border-white/5 mb-2">
+              <div className="h-10 w-10 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-600 dark:text-indigo-400">
+                A
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
+                <p className="text-[10px] text-slate-500 dark:text-gray-400 truncate">{user?.email}</p>
+              </div>
+            </div>
+
+            <nav className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <button
+                    key={item.name}
+                    onClick={() => {
+                      navigate(item.path);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition ${
+                      isActive 
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' 
+                        : 'text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon className="h-4.5 w-4.5" />
+                    <span>{item.name}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+              <button
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-2xl text-xs sm:text-sm font-semibold transition"
+              >
+                <LogOut className="h-4.5 w-4.5" />
+                <span>Keluar dari Akun</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Content Area */}
       <main className="flex-1 flex flex-col min-w-0 pt-16 md:pt-0 overflow-y-auto">
-        <div className="p-4 md:p-8 max-w-6xl w-full mx-auto">
+        <div className="p-3.5 sm:p-5 md:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </div>
       </main>
